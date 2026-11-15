@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Uber Data Analytics Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+    href="{{ url_for('static', filename='theme.css') }}">
+
+    
+</head>
+
+<body class="home-page">
+
+<!-- ================= TOP NAVIGATION ================= -->
+
+<nav class="navbar navbar-expand-xl top-navbar">
+
+    <div class="container-fluid px-4">
+
+        <a class="navbar-brand" href="/">
+            <b>Uber</b>
+            <span>| Analytics Dashboard</span>
+        </a>
+
+        <button class="navbar-toggler" type="button"
+        data-bs-toggle="collapse" data-bs-target="#mainMenu">
+
+            <i class="fa-solid fa-bars"></i>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainMenu">
+
+            <ul class="navbar-nav mx-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">
+                        <i class="fa-solid fa-house"></i> Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">
+                        <i class="fa-solid fa-chart-pie"></i> Dashboard
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/ride-analysis">
+                        <i class="fa-solid fa-car"></i> Ride Analysis
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/city-analysis">
+                        <i class="fa-solid fa-city"></i> City Analysis
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/payment-analysis">
+                        <i class="fa-solid fa-credit-card"></i> Payment
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/ride-status">
+                        <i class="fa-solid fa-chart-column"></i> Ride Status
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/live-team">
+                        <i class="fa-solid fa-location-dot"></i> Live Team
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/reports">
+                        <i class="fa-solid fa-file-lines"></i> Reports
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+<!-- ================= HERO SECTION ================= -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <div class="hero-text">
+
+            <p class="hero-eyebrow"><i class="fa-solid fa-chart-line"></i> UBER ANALYTICS WORKSPACE</p>
+            <h1>Welcome to Uber <span>Data Analytics</span></h1>
+            <h2>Explore. Analyze. Drive Better Decisions.</h2>
+
+            <div class="line"></div>
+
+            <p>
+                Explore Uber ride analytics, track vehicle performance, analyze customer behaviour, monitor revenue, and discover city-wise trends. Get valuable business insights through interactive data visualizations and make smarter decisions.
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="/dashboard" class="btn-primary-custom">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    Explore Dashboard
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+
+                <a href="#features" class="btn-outline-custom">
+                    <i class="fa-solid fa-circle-play"></i>
+                    Learn More
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="hero-image" role="img" aria-label="Uber motorcycle traveling on a rounded road">
+            <div class="bike-scene-label"><i class="fa-solid fa-location-dot"></i> Ride smarter, every day</div>
+            <div class="bike-road" aria-hidden="true"></div>
+            <div class="uber-bike" aria-hidden="true">
+                <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="160" cy="158" rx="125" ry="10" fill="#24172f" opacity=".14"/>
+                    <g class="bike-wheels" fill="#261d2d" stroke="#17131d" stroke-width="5">
+                        <circle cx="73" cy="137" r="29"/>
+                        <circle cx="245" cy="137" r="29"/>
+                    </g>
+                    <g fill="none" stroke="#c9b8d5" stroke-width="3">
+                        <circle cx="73" cy="137" r="21"/>
+                        <circle cx="245" cy="137" r="21"/>
+                        <path d="M73 116v42m-21-21h42m-15-15 30 30m0-30-30 30M245 116v42m-21-21h42m-15-15 30 30m0-30-30 30"/>
+                    </g>
+                    <g fill="none" stroke="#33243f" stroke-linecap="round" stroke-linejoin="round" stroke-width="8">
+                        <path d="m73 137 47-49 42 49H73l35-39m54 39 30-58 53 58"/>
+                        <path d="m153 88 23-10 15 4"/>
+                    </g>
+                    <path d="M111 93h52l22 24h-70l-17-12z" fill="#762f84"/>
+                    <path d="M129 91h34l-8-10h-23z" fill="#35213f"/>
+                    <path d="m183 77 19-28 18 2 14 29-19 8-24-5z" fill="#32213c"/>
+                    <path d="m197 57-30-13-15-21" fill="none" stroke="#d79c74" stroke-linecap="round" stroke-width="10"/>
+                    <path d="m213 61 24-19 10-19" fill="none" stroke="#d79c74" stroke-linecap="round" stroke-width="9"/>
+                    <path d="m151 35 14 4 9 23 24 9-7 14-38-10-12-25z" fill="#762f84"/>
+                    <path d="m160 28 8-13 25 6 8 11-14 8-22-3z" fill="#35213f"/>
+                    <path d="m166 19 3-10 25 3 10 8-2 7-30-2z" fill="#24172f"/>
+                    <path d="m234 78 21 5 5 8-26-2z" fill="#f3c66e"/>
+                    <path d="m232 74 9-7 6 3-3 10z" fill="#33243f"/>
+                    <path d="M55 92h25l9 8H58z" fill="#362640"/>
+                    <rect x="48" y="75" width="38" height="25" rx="5" fill="#762f84"/>
+                    <path d="M54 82h26v12H54z" fill="#fffaf6"/>
+                    <text x="67" y="91" text-anchor="middle" fill="#762f84" font-family="Arial, sans-serif" font-size="7" font-weight="700">UBER</text>
+                </svg>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= FEATURES SECTION ================= -->
+
+<section class="features-section" id="features">
+
+    <div class="section-heading">
+
+        <h2>Key Features</h2>
+
+        <p>Explore all your analytics tools in one place</p>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+        <a href="/dashboard" class="feature-card">
+
+            <div class="feature-icon blue">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+
+            <h5>Dashboard Overview</h5>
+
+            <p>Get complete insights at a glance</p>
+
+        </a>
+
+
+        <a href="/ride-analysis" class="feature-card">
+
+            <div class="feature-icon green">
+                <i class="fa-solid fa-car"></i>
+            </div>
+
+            <h5>Ride Analysis</h5>
+
+            <p>Analyze ride patterns and trends</p>
+
+        </a>
+
+
+        <a href="/city-analysis" class="feature-card">
+
+            <div class="feature-icon purple">
+                <i class="fa-solid fa-city"></i>
+            </div>
+
+            <h5>City Analysis</h5>
+
+            <p>Compare performance across cities</p>
+
+        </a>
+
+
+        <a href="/payment-analysis" class="feature-card">
+
+            <div class="feature-icon orange">
+                <i class="fa-solid fa-credit-card"></i>
+            </div>
+
+            <h5>Payment Analysis</h5>
+
+            <p>Explore payment methods and trends</p>
+
+        </a>
+
+
+        <a href="/ride-status" class="feature-card">
+
+            <div class="feature-icon green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <h5>Ride Status</h5>
+
+            <p>Track completed and cancelled rides</p>
+
+        </a>
+
+
+        <a href="/live-team" class="feature-card">
+
+            <div class="feature-icon blue">
+                <i class="fa-solid fa-location-dot"></i>
+            </div>
+
+            <h5>Live Team Tracking</h5>
+
+            <p>Monitor service team locations</p>
+
+        </a>
+
+
+        <a href="/reports" class="feature-card">
+
+            <div class="feature-icon purple">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+
+            <h5>Reports</h5>
+
+            <p>Generate detailed analytics reports</p>
+
+        </a>
+
+
+    </div>
+
+</section>
+
+
+<!-- ================= ANALYTICS SUMMARY ================= -->
+
+<section class="summary-section">
+
+    <div class="summary-item">
+
+        <i class="fa-solid fa-car"></i>
+
+        <div>
+
+            <h3>{{ "{:,}".format(total_rides) }}</h3>
+
+            <p>Total Rides</p>
+
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <i class="fa-solid fa-indian-rupee-sign"></i>
+
+        <div>
+
+            <h3>₹{{ "{:,.0f}".format(total_revenue) }}</h3>
+
+            <p>Total Revenue</p>
+
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <i class="fa-solid fa-route"></i>
+
+        <div>
+
+            <h3>{{ "{:,.0f}".format(total_distance) }} km</h3>
+
+            <p>Total Distance</p>
+
+        </div>
+
+    </div>
+
+
+    <div class="summary-item">
+
+        <i class="fa-solid fa-star"></i>
+
+        <div>
+
+            <h3>
+                {{ average_rating if average_rating is not none else "N/A" }} / 5
+            </h3>
+
+            <p>Average Rating</p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer>
+
+    <p>
+        © 2026 Uber Data Analytics Dashboard |
+        Python & Flask Project
+    </p>
+
+    <p>Ride Smarter. Analyze Better.</p>
+
+</footer>
+
+
+<!-- Bootstrap JavaScript -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payment Analysis | Uber</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='payment_analysis.css') }}">
+</head>
+<body class="payment-analysis-page">
+    <main class="payment-analysis-shell">
+        <aside class="payment-filter-panel">
+            <div class="payment-filter-brand">
+                <span class="payment-brand-icon"><i class="fa-solid fa-wallet"></i></span>
+                <div><strong>Payment Analysis</strong><small>Payment insights</small></div>
+            </div>
+
+            <form class="payment-filters" method="get" action="{{ url_for('payment_analysis') }}">
+                {% if request.args.get("embedded") == "1" %}
+                    <input type="hidden" name="embedded" value="1">
+                {% endif %}
+                <label class="payment-filter-field">
+                    <span><i class="fa-regular fa-calendar"></i> Year</span>
+                    <select name="year">
+                        <option value="all" {% if selected_year == "all" %}selected{% endif %}>All years</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="payment-filter-field">
+                    <span><i class="fa-regular fa-calendar-days"></i> Month</span>
+                    <select name="month">
+                        <option value="all" {% if selected_month == "all" %}selected{% endif %}>All months</option>
+                        {% for month in months %}
+                            <option value="{{ month }}" {% if selected_month == month|string %}selected{% endif %}>{{ month_names[month - 1] }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="payment-filter-field">
+                    <span><i class="fa-solid fa-wallet"></i> Payment method</span>
+                    <select name="method">
+                        <option value="all" {% if selected_method == "all" %}selected{% endif %}>All methods</option>
+                        {% for method in payment_methods %}
+                            <option value="{{ method }}" {% if selected_method == method %}selected{% endif %}>{{ method }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="payment-filter-field">
+                    <span><i class="fa-solid fa-circle-check"></i> Ride status</span>
+                    <select name="status">
+                        <option value="all" {% if selected_status == "all" %}selected{% endif %}>All statuses</option>
+                        {% for status in ride_statuses %}
+                            <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status.replace("_", " ").title() }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button class="payment-filter-submit" type="submit"><i class="fa-solid fa-filter"></i> Apply filters</button>
+                <a class="payment-filter-reset" href="{{ url_for('payment_analysis', embedded=1) if request.args.get('embedded') == '1' else url_for('payment_analysis') }}">Reset filters</a>
+            </form>
+
+            <div class="payment-filter-art" aria-hidden="true">
+                <span class="payment-art-skyline"></span>
+                <i class="fa-solid fa-mobile-screen-button payment-art-phone"></i>
+                <i class="fa-solid fa-circle-check payment-art-check"></i>
+                <i class="fa-solid fa-coins payment-art-coins"></i>
+            </div>
+        </aside>
+
+        <section class="payment-analysis-content">
+            <header class="payment-page-header">
+                <div class="payment-heading-brand">
+                    <span class="payment-heading-icon"><i class="fa-solid fa-wallet"></i></span>
+                    <div>
+                        <p class="payment-eyebrow">PAYMENT PERFORMANCE</p>
+                        <h1>Payment Analysis</h1>
+                        <p>Analyze payment methods and revenue trends.</p>
+                    </div>
+                </div>
+                <div class="payment-header-art" aria-hidden="true">
+                    <span class="payment-header-skyline"></span>
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <span class="payment-period-badge"><i class="fa-regular fa-calendar"></i> {{ period_label }}</span>
+            </header>
+
+            <section class="payment-kpi-grid" aria-label="Payment analytics summary">
+                <article class="payment-kpi payment-kpi-lilac">
+                    <span class="payment-kpi-icon"><i class="fa-solid fa-credit-card"></i></span>
+                    <div><span>Total payments</span><strong>{{ "{:,}".format(total_payments) }}</strong><small>Recorded rides</small></div>
+                </article>
+                <article class="payment-kpi payment-kpi-mint">
+                    <span class="payment-kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                    <div><span>Total revenue</span><strong>₹{{ "{:,.2f}".format(total_revenue) }}</strong><small>All selected methods</small></div>
+                </article>
+                <article class="payment-kpi payment-kpi-peach">
+                    <span class="payment-kpi-icon"><i class="fa-solid fa-money-bill-wave"></i></span>
+                    <div><span>Cash revenue</span><strong>₹{{ "{:,.2f}".format(cash_revenue) }}</strong><small>Cash fare total</small></div>
+                </article>
+                <article class="payment-kpi payment-kpi-rose">
+                    <span class="payment-kpi-icon"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    <div><span>Online revenue</span><strong>₹{{ "{:,.2f}".format(online_revenue) }}</strong><small>UPI, card and wallet fares</small></div>
+                </article>
+            </section>
+
+            <section class="payment-charts-grid" aria-label="Payment analysis charts">
+                <article class="payment-chart-card payment-trend-card">
+                    <div class="payment-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-line"></i> Payment trend</h2><p>Monthly revenue by payment method</p></div>
+                        <span class="payment-chart-label">Latest 6 months</span>
+                    </div>
+                    <div class="payment-chart-wrap payment-trend-wrap"><canvas id="paymentTrendChart" aria-label="Monthly payment revenue trend"></canvas></div>
+                </article>
+
+                <article class="payment-chart-card payment-share-card">
+                    <div class="payment-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-pie"></i> Payment method share</h2><p>Payment count by method</p></div>
+                    </div>
+                    <div class="payment-chart-wrap payment-share-wrap"><canvas id="paymentShareChart" aria-label="Payment method share"></canvas></div>
+                </article>
+
+                <article class="payment-chart-card payment-revenue-card">
+                    <div class="payment-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-column"></i> Revenue by payment method</h2><p>Fare total for each method</p></div>
+                    </div>
+                    <div class="payment-chart-wrap"><canvas id="paymentRevenueChart" aria-label="Revenue by payment method"></canvas></div>
+                </article>
+
+                <article class="payment-chart-card payment-recent-card">
+                    <div class="payment-card-heading">
+                        <div><h2><i class="fa-solid fa-list"></i> Recent payments</h2><p>Latest matching ride records</p></div>
+                        <span class="payment-chart-label">{{ recent_transactions|length }} records</span>
+                    </div>
+                    <div class="payment-table-scroll">
+                        <table class="payment-recent-table">
+                            <thead><tr><th>Ride ID</th><th>Method</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.Ride_ID }}</td>
+                                    <td>{{ transaction.Payment_Method }}</td>
+                                    <td>₹{{ "{:,.2f}".format(transaction.Fare_INR or 0) }}</td>
+                                    <td>{{ transaction.display_date or "N/A" }}</td>
+                                    <td><span class="payment-status status-{{ transaction.Ride_Status|lower|replace(' ', '-') }}">{{ transaction.Ride_Status|title }}</span></td>
+                                </tr>
+                                {% else %}
+                                <tr><td class="payment-empty-row" colspan="5">No payments match these filters.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+            <footer class="payment-analysis-footer">Uber Analytics <span>·</span> Payment intelligence</footer>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const paymentData = {{ payment_chart_data | tojson }};
+        const colors = ["#9057f4", "#26bf87", "#3789ef", "#ffa23f", "#e95297", "#50b6ca"];
+        const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
+        const compactMoney = value => "₹" + new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+
+        if (paymentData.monthLabels.length && Object.keys(paymentData.monthRevenue).length) {
+            const methods = Object.keys(paymentData.monthRevenue);
+            new Chart(document.getElementById("paymentTrendChart"), {
+                type: "line",
+                data: {
+                    labels: paymentData.monthLabels,
+                    datasets: methods.map((method, index) => ({
+                        label: method,
+                        data: paymentData.monthRevenue[method],
+                        borderColor: colors[index % colors.length],
+                        backgroundColor: colors[index % colors.length] + "24",
+                        pointRadius: 2,
+                        tension: .32,
+                        fill: false
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: { legend: { position: "top", align: "end", labels: { usePointStyle: true, pointStyle: "circle", boxWidth: 7, padding: 12 } }, tooltip: { callbacks: { label: item => item.dataset.label + ": " + money(item.raw) } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: "#f0eaf4" }, ticks: { callback: value => compactMoney(value) } }
+                    }
+                }
+            });
+        }
+
+        if (paymentData.shareLabels.length) {
+            new Chart(document.getElementById("paymentShareChart"), {
+                type: "doughnut",
+                data: { labels: paymentData.shareLabels, datasets: [{ data: paymentData.shareValues, backgroundColor: colors, borderColor: "#fff", borderWidth: 3, hoverOffset: 6 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "67%",
+                    plugins: {
+                        legend: { position: "right", labels: { usePointStyle: true, pointStyle: "circle", boxWidth: 8, padding: 12 } },
+                        tooltip: { callbacks: { label: item => item.label + ": " + Number(item.raw).toLocaleString("en-IN") } }
+                    }
+                }
+            });
+        }
+
+        if (paymentData.methodLabels.length) {
+            new Chart(document.getElementById("paymentRevenueChart"), {
+                type: "bar",
+                data: { labels: paymentData.methodLabels, datasets: [{ data: paymentData.methodRevenue, backgroundColor: colors, borderRadius: 7, maxBarThickness: 42 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: item => money(item.raw) } } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, grid: { color: "#f0eaf4" }, ticks: { callback: value => compactMoney(value) } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

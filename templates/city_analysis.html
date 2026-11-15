@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>City Analysis | Uber</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='city_analysis.css') }}">
+</head>
+<body class="city-analysis-page">
+    <main class="city-analysis-shell">
+        <aside class="city-filter-panel">
+            <div class="city-filter-brand">
+                <span class="city-brand-icon"><i class="fa-solid fa-location-dot"></i></span>
+                <div><strong>City Analysis</strong><small>Ride intelligence</small></div>
+            </div>
+
+            <form class="city-filters" method="get" action="{{ url_for('city_analysis') }}">
+                {% if request.args.get("embedded") == "1" %}
+                    <input type="hidden" name="embedded" value="1">
+                {% endif %}
+                <label class="city-filter-field">
+                    <span><i class="fa-regular fa-calendar"></i> Year</span>
+                    <select name="year">
+                        <option value="all" {% if selected_year == "all" %}selected{% endif %}>All years</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="city-filter-field">
+                    <span><i class="fa-regular fa-calendar-days"></i> Month</span>
+                    <select name="month">
+                        <option value="all" {% if selected_month == "all" %}selected{% endif %}>All months</option>
+                        {% for month in months %}
+                            <option value="{{ month }}" {% if selected_month == month|string %}selected{% endif %}>{{ month_names[month - 1] }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="city-filter-field">
+                    <span><i class="fa-solid fa-car"></i> Ride type</span>
+                    <select name="ride_type">
+                        <option value="all" {% if selected_ride_type == "all" %}selected{% endif %}>All ride types</option>
+                        {% for ride_type in ride_types %}
+                            <option value="{{ ride_type }}" {% if selected_ride_type == ride_type %}selected{% endif %}>{{ ride_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="city-filter-field">
+                    <span><i class="fa-solid fa-circle-check"></i> Ride status</span>
+                    <select name="status">
+                        <option value="all" {% if selected_status == "all" %}selected{% endif %}>All statuses</option>
+                        {% for status in ride_statuses %}
+                            <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status.replace("_", " ").title() }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button class="city-filter-submit" type="submit"><i class="fa-solid fa-filter"></i> Apply filters</button>
+                <a class="city-filter-reset" href="{{ url_for('city_analysis', embedded=1) if request.args.get('embedded') == '1' else url_for('city_analysis') }}">Reset filters</a>
+            </form>
+
+            <div class="city-filter-art" aria-hidden="true">
+                <span class="city-skyline"></span>
+                <span class="city-art-pin"><i class="fa-solid fa-location-dot"></i></span>
+                <span class="city-art-car"><i class="fa-solid fa-car-side"></i></span>
+            </div>
+        </aside>
+
+        <section class="city-analysis-content">
+            <header class="city-page-header">
+                <div class="city-heading-brand">
+                    <span class="city-heading-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <div>
+                        <p class="city-eyebrow">CITY PERFORMANCE</p>
+                        <h1>City Analysis</h1>
+                        <p>Analyze ride performance across cities.</p>
+                    </div>
+                </div>
+                <div class="city-header-art" aria-hidden="true">
+                    <span class="header-skyline"></span>
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <span class="city-period-badge"><i class="fa-regular fa-calendar"></i> {{ period_label }}</span>
+            </header>
+
+            <section class="city-kpi-grid" aria-label="City analytics summary">
+                <article class="city-kpi city-kpi-lilac">
+                    <span class="city-kpi-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <div><span>Total cities</span><strong>{{ "{:,}".format(total_cities) }}</strong><small>In the selected rides</small></div>
+                </article>
+                <article class="city-kpi city-kpi-mint">
+                    <span class="city-kpi-icon"><i class="fa-solid fa-car"></i></span>
+                    <div><span>Total rides</span><strong>{{ "{:,}".format(total_rides) }}</strong><small>Across selected cities</small></div>
+                </article>
+                <article class="city-kpi city-kpi-blue">
+                    <span class="city-kpi-icon"><i class="fa-solid fa-ranking-star"></i></span>
+                    <div><span>Top city rides</span><strong>{{ "{:,}".format(top_city_rides) }}</strong><small>{{ top_city_name }}</small></div>
+                </article>
+                <article class="city-kpi city-kpi-peach">
+                    <span class="city-kpi-icon"><i class="fa-solid fa-chart-column"></i></span>
+                    <div><span>Avg rides per city</span><strong>{{ "{:,}".format(average_rides_per_city) }}</strong><small>Selected rides ÷ cities</small></div>
+                </article>
+            </section>
+
+            <section class="city-charts-grid" aria-label="City analysis charts">
+                <article class="city-chart-card city-rides-card">
+                    <div class="city-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-column"></i> Rides by city</h2><p>Highest ride volumes</p></div>
+                        <span class="city-chart-label">Top {{ city_labels|length }}</span>
+                    </div>
+                    <div class="city-chart-wrap"><canvas id="cityRidesChart" aria-label="Rides by city"></canvas></div>
+                </article>
+
+                <article class="city-chart-card city-distribution-card">
+                    <div class="city-card-heading">
+                        <div><h2><i class="fa-solid fa-location-dot"></i> City-wise ride distribution</h2><p>Share of rides by city</p></div>
+                    </div>
+                    <div class="city-distribution-layout">
+                        <div class="city-chart-wrap city-donut-wrap"><canvas id="cityShareChart" aria-label="City-wise ride distribution"></canvas></div>
+                        <ul class="city-share-legend">
+                            {% for city in city_share_labels %}
+                            <li style="--city-color: {{ city_colors[loop.index0 % city_colors|length] }}">
+                                <span><i></i>{{ city }}</span>
+                                <strong>{{ "{:.0f}".format(city_share_values[loop.index0] / total_rides * 100 if total_rides else 0) }}%</strong>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </article>
+
+                <article class="city-chart-card city-region-card">
+                    <div class="city-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-pie"></i> Rides by region</h2><p>Region inferred from city</p></div>
+                    </div>
+                    <div class="city-chart-wrap city-region-chart-wrap"><canvas id="regionChart" aria-label="Rides by Indian region"></canvas></div>
+                </article>
+
+                <article class="city-chart-card city-trend-card">
+                    <div class="city-card-heading">
+                        <div><h2><i class="fa-solid fa-arrow-trend-up"></i> City trend</h2><p>Ride volume over the latest six months</p></div>
+                    </div>
+                    <div class="city-chart-wrap city-trend-chart-wrap"><canvas id="cityTrendChart" aria-label="Monthly city ride trend"></canvas></div>
+                </article>
+
+                <article class="city-chart-card city-revenue-card">
+                    <div class="city-card-heading">
+                        <div><h2><i class="fa-solid fa-trophy"></i> Top city by revenue</h2><p>Fare totals for leading cities</p></div>
+                    </div>
+                    <div class="city-table-scroll">
+                        <table class="city-revenue-table">
+                            <thead><tr><th>City</th><th>Total rides</th><th>Revenue</th></tr></thead>
+                            <tbody>
+                                {% for city in top_cities %}
+                                <tr>
+                                    <td>{{ city["City"] }}</td>
+                                    <td>{{ "{:,}".format(city["rides"]) }}</td>
+                                    <td>₹{{ "{:,.0f}".format(city["revenue"]) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td class="city-empty-row" colspan="3">No city data for this selection.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+            <footer class="city-analysis-footer">Uber Analytics <span>·</span> City intelligence</footer>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const cityChartData = {
+            cityLabels: {{ city_labels | tojson }},
+            cityValues: {{ city_values | tojson }},
+            shareLabels: {{ city_share_labels | tojson }},
+            shareValues: {{ city_share_values | tojson }},
+            regionLabels: {{ region_labels | tojson }},
+            regionValues: {{ region_values | tojson }},
+            monthLabels: {{ booking_months | tojson }},
+            monthValues: {{ monthly_bookings | tojson }}
+        };
+        const cityColors = {{ city_colors | tojson }};
+        const chartText = "#655d7b";
+        const chartGrid = "#f0eaf4";
+        const countChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        };
+
+        if (cityChartData.cityLabels.length) {
+            new Chart(document.getElementById("cityRidesChart"), {
+                type: "bar",
+                data: { labels: cityChartData.cityLabels, datasets: [{ data: cityChartData.cityValues, backgroundColor: cityColors, borderRadius: 6, maxBarThickness: 38 }] },
+                options: {
+                    ...countChartOptions,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: chartText, maxRotation: 0, minRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: chartGrid }, ticks: { color: chartText, precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        if (cityChartData.shareLabels.length) {
+            new Chart(document.getElementById("cityShareChart"), {
+                type: "doughnut",
+                data: { labels: cityChartData.shareLabels, datasets: [{ data: cityChartData.shareValues, backgroundColor: cityColors, borderWidth: 3, borderColor: "#fff", hoverOffset: 5 }] },
+                options: { ...countChartOptions, cutout: "66%", plugins: { legend: { display: false } } }
+            });
+        }
+
+        if (cityChartData.regionLabels.length) {
+            new Chart(document.getElementById("regionChart"), {
+                type: "doughnut",
+                data: { labels: cityChartData.regionLabels, datasets: [{ data: cityChartData.regionValues, backgroundColor: ["#9057f4", "#26bf87", "#3789ef", "#ffa23f"], borderWidth: 3, borderColor: "#fff", hoverOffset: 5 }] },
+                options: { ...countChartOptions, cutout: "62%", plugins: { legend: { position: "bottom", labels: { color: chartText, usePointStyle: true, pointStyle: "circle", boxWidth: 7, padding: 10 } } } }
+            });
+        }
+
+        if (cityChartData.monthLabels.length) {
+            new Chart(document.getElementById("cityTrendChart"), {
+                type: "line",
+                data: { labels: cityChartData.monthLabels, datasets: [{ data: cityChartData.monthValues, borderColor: "#794af0", backgroundColor: "rgba(121, 74, 240, .12)", fill: true, tension: .36, pointRadius: 3, pointBackgroundColor: "#794af0" }] },
+                options: {
+                    ...countChartOptions,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: chartText, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: chartGrid }, ticks: { color: chartText, precision: 0 } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

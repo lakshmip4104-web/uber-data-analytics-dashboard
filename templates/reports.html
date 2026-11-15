@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Uber Reports | Ride Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='reports.css') }}">
+</head>
+<body class="reports-page">
+    <main class="reports-dashboard">
+        <header class="reports-toolbar">
+            <a class="reports-brand" href="{{ url_for('workspace') }}" aria-label="Uber reports dashboard">
+                <span>Uber <strong>Reports</strong></span>
+                <small>Ride Analytics &amp; Business Insights</small>
+            </a>
+
+            <form class="reports-filter-form" method="get" action="{{ url_for('reports') }}">
+                {% if request.args.get("embedded") == "1" %}
+                    <input type="hidden" name="embedded" value="1">
+                {% endif %}
+                <label class="reports-filter">
+                    <span class="visually-hidden">Year</span>
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                    <select name="year" aria-label="Filter by year">
+                        <option value="all" {% if selected_year == "all" %}selected{% endif %}>All Years</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="reports-filter">
+                    <span class="visually-hidden">Month</span>
+                    <select name="month" aria-label="Filter by month">
+                        <option value="all" {% if selected_month == "all" %}selected{% endif %}>All Months</option>
+                        {% for month in months %}
+                            <option value="{{ month }}" {% if selected_month == month|string %}selected{% endif %}>{{ month_names[month - 1] }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="reports-filter">
+                    <span class="visually-hidden">City</span>
+                    <select name="city" aria-label="Filter by city">
+                        <option value="all" {% if selected_city == "all" %}selected{% endif %}>All Cities</option>
+                        {% for city in cities %}
+                            <option value="{{ city }}" {% if selected_city == city %}selected{% endif %}>{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="reports-filter">
+                    <span class="visually-hidden">Ride type</span>
+                    <select name="type" aria-label="Filter by ride type">
+                        <option value="all" {% if selected_type == "all" %}selected{% endif %}>All Types</option>
+                        {% for ride_type in ride_types %}
+                            <option value="{{ ride_type }}" {% if selected_type == ride_type %}selected{% endif %}>{{ ride_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button class="reports-export-button" type="submit" name="export" value="pdf">
+                    <i class="fa-solid fa-download" aria-hidden="true"></i> Export PDF
+                </button>
+            </form>
+        </header>
+
+        <section class="reports-kpi-grid" aria-label="Report summary">
+            <article class="reports-kpi reports-kpi-purple">
+                <span class="reports-kpi-icon"><i class="fa-solid fa-car-side"></i></span>
+                <div><small>Total Rides</small><strong>{{ "{:,}".format(total_rides) }}</strong><span class="reports-kpi-note">Matching ride records</span></div>
+                <span class="reports-kpi-spark" aria-hidden="true"></span>
+            </article>
+            <article class="reports-kpi reports-kpi-green">
+                <span class="reports-kpi-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+                <div><small>Total Revenue</small><strong>₹{{ "{:,.0f}".format(total_revenue) }}</strong><span class="reports-kpi-note">Fare total in selection</span></div>
+                <span class="reports-kpi-spark" aria-hidden="true"></span>
+            </article>
+            <article class="reports-kpi reports-kpi-orange">
+                <span class="reports-kpi-icon"><i class="fa-solid fa-star"></i></span>
+                <div><small>Average Rating</small><strong>{{ "%.1f"|format(average_rating) if rated_rides else "N/A" }}</strong><span class="reports-kpi-note">Rated rides only</span></div>
+                <span class="reports-kpi-spark" aria-hidden="true"></span>
+            </article>
+            <article class="reports-kpi reports-kpi-blue">
+                <span class="reports-kpi-icon"><i class="fa-solid fa-check"></i></span>
+                <div><small>Completion Rate</small><strong>{{ "%.1f"|format(completion_rate) }}%</strong><span class="reports-kpi-note">{{ "{:,}".format(completed_rides) }} completed rides</span></div>
+                <span class="reports-kpi-spark" aria-hidden="true"></span>
+            </article>
+        </section>
+
+        <section class="reports-grid" aria-label="Ride and business insights">
+            <article class="reports-panel reports-monthly-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-chart-column"></i> Monthly Performance</h2><p>Ride volume and fare revenue by month · {{ period_start }} – {{ period_end }}</p></div>
+                    <span class="reports-legend"><i class="legend-rides"></i> Rides <i class="legend-revenue"></i> Revenue</span>
+                </div>
+                <div class="reports-chart reports-monthly-chart"><canvas id="monthlyChart" aria-label="Monthly ride and revenue performance"></canvas></div>
+            </article>
+
+            <article class="reports-panel reports-city-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-location-dot"></i> City Ride Heatmap</h2><p>Ride share across the top cities</p></div>
+                    <span class="reports-top-chip">Top Cities</span>
+                </div>
+                <div class="reports-city-list">
+                    {% for city in city_report %}
+                    <div class="reports-city-row">
+                        <span class="reports-city-rank">{{ loop.index }}</span>
+                        <div class="reports-city-info">
+                            <div><strong>{{ city.City }}</strong><span>{{ "{:,}".format(city.rides) }}</span></div>
+                            <span class="reports-city-track"><span style="width: {{ '%.1f'|format(city.bar_width) }}%"></span></span>
+                        </div>
+                        <strong class="reports-city-share">{{ "%.1f"|format(city.share) }}%</strong>
+                    </div>
+                    {% else %}
+                    <p class="reports-empty">No city records for these filters.</p>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="reports-panel reports-small-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-car"></i> Ride Types</h2><p>Rides by service type</p></div>
+                </div>
+                <div class="reports-donut-layout">
+                    <div class="reports-chart reports-donut-chart">
+                        <canvas id="rideTypeChart" aria-label="Ride type distribution"></canvas>
+                        <div class="reports-donut-center"><strong>{{ "{:,}".format(total_rides) }}</strong><span>Total Rides</span></div>
+                    </div>
+                    <div class="reports-chart-legend" id="rideTypeLegend"></div>
+                </div>
+            </article>
+
+            <article class="reports-panel reports-small-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-star"></i> Customer Ratings</h2><p>Rating ranges · {{ "{:,}".format(rated_rides) }} rated rides</p></div>
+                </div>
+                <div class="reports-donut-layout">
+                    <div class="reports-chart reports-donut-chart">
+                        <canvas id="ratingChart" aria-label="Customer rating ranges"></canvas>
+                        <div class="reports-donut-center reports-rating-center"><strong>{{ "%.1f"|format(average_rating) if rated_rides else "N/A" }}</strong><span>Avg Rating</span></div>
+                    </div>
+                    <div class="reports-chart-legend" id="ratingLegend"></div>
+                </div>
+            </article>
+
+            <article class="reports-panel reports-small-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-ban"></i> Cancellation Analysis</h2><p>Customer {{ "{:,}".format(customer_cancellations) }} · Driver {{ "{:,}".format(driver_cancellations) }} cancellations</p></div>
+                </div>
+                {% if cancelled_rides %}
+                    <div class="reports-chart reports-cancellation-chart"><canvas id="cancellationChart" aria-label="Ride cancellation reasons"></canvas></div>
+                {% else %}
+                    <p class="reports-empty reports-chart-empty">No cancellations in this selection.</p>
+                {% endif %}
+            </article>
+
+            <article class="reports-panel reports-city-table-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-solid fa-city"></i> City Performance</h2><p>Top cities ranked by ride volume</p></div>
+                    <span class="reports-range-label">{{ period_start }} – {{ period_end }}</span>
+                </div>
+                <div class="reports-table-scroll">
+                    <table class="reports-table">
+                        <thead><tr><th>City</th><th>Total Rides</th><th>Revenue</th><th>Avg Fare</th></tr></thead>
+                        <tbody>
+                            {% for city in city_report %}
+                            <tr>
+                                <td><span class="reports-table-city-icon"><i class="fa-solid fa-location-dot"></i></span>{{ city.City }}</td>
+                                <td>{{ "{:,}".format(city.rides) }}</td>
+                                <td>₹{{ "{:,.2f}".format(city.revenue) }}</td>
+                                <td>₹{{ "{:,.2f}".format(city.average_fare) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td class="reports-empty" colspan="4">No city records available.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="reports-panel reports-payment-panel">
+                <div class="reports-panel-heading">
+                    <div><h2><i class="fa-regular fa-credit-card"></i> Payment Methods</h2><p>Share of filtered rides</p></div>
+                </div>
+                {% if report_chart_data.paymentLabels %}
+                    <div class="reports-chart reports-payment-chart"><canvas id="paymentChart" aria-label="Payment method distribution"></canvas></div>
+                {% else %}
+                    <p class="reports-empty reports-chart-empty">No payment methods in this selection.</p>
+                {% endif %}
+            </article>
+        </section>
+
+        <footer class="reports-footer">
+            <span>Uber Reports · {{ period_start }} – {{ period_end }}</span>
+            <span>City intensity shows ride share; location coordinates are not available in this dataset.</span>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const colors = ["#7627e8", "#13b96a", "#ff9f1c", "#168bfa", "#ef4e9a", "#55b8c5"];
+        const reportData = {{ report_chart_data | tojson }};
+        const compactNumber = value => new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+        const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
+        const doughnutOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "69%",
+            plugins: { legend: { display: false } }
+        };
+
+        new Chart(document.getElementById("monthlyChart"), {
+            type: "line",
+            data: {
+                labels: reportData.monthLabels,
+                datasets: [
+                    { label: "Rides", data: reportData.monthlyRides, yAxisID: "rides", borderColor: "#7728e9", backgroundColor: "rgba(119,40,233,.10)", fill: true, tension: .35, pointRadius: 3, pointHoverRadius: 5 },
+                    { label: "Revenue", data: reportData.monthlyRevenue, yAxisID: "revenue", borderColor: "#168bfa", backgroundColor: "transparent", tension: .35, pointRadius: 3, pointHoverRadius: 5 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: item => item.dataset.label + ": " + (item.dataset.yAxisID === "revenue" ? money(item.raw) : Number(item.raw).toLocaleString("en-IN")) } }
+                },
+                scales: {
+                    x: { grid: { color: "rgba(119,40,233,.08)" }, ticks: { color: "#29204c" } },
+                    rides: { type: "linear", position: "left", beginAtZero: true, grid: { color: "rgba(119,40,233,.09)" }, ticks: { color: "#30234e", callback: value => compactNumber(value) } },
+                    revenue: { type: "linear", position: "right", beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { color: "#30234e", callback: value => money(value) } }
+                }
+            }
+        });
+
+        const addLegend = (elementId, labels, values, chartColors) => {
+            const element = document.getElementById(elementId);
+            const total = values.reduce((sum, value) => sum + Number(value || 0), 0);
+            labels.forEach((label, index) => {
+                const rawShare = total ? Number(values[index]) / total * 100 : 0;
+                const share = rawShare > 0 && rawShare < 1 ? "<1" : rawShare.toFixed(0);
+                const row = document.createElement("span");
+                const marker = document.createElement("i");
+                marker.style.setProperty("--legend-color", chartColors[index % chartColors.length]);
+                const name = document.createElement("span");
+                name.textContent = label;
+                const percent = document.createElement("strong");
+                percent.textContent = share + "%";
+                row.append(marker, name, percent);
+                element.appendChild(row);
+            });
+        };
+
+        if (reportData.rideTypeLabels.length) {
+            new Chart(document.getElementById("rideTypeChart"), {
+                type: "doughnut",
+                data: { labels: reportData.rideTypeLabels, datasets: [{ data: reportData.rideTypeValues, backgroundColor: colors, borderColor: "#fff", borderWidth: 3, hoverOffset: 5 }] },
+                options: doughnutOptions
+            });
+        }
+        addLegend("rideTypeLegend", reportData.rideTypeLabels, reportData.rideTypeValues, colors);
+
+        if (reportData.ratingLabels.length) {
+            new Chart(document.getElementById("ratingChart"), {
+                type: "doughnut",
+                data: { labels: reportData.ratingLabels, datasets: [{ data: reportData.ratingValues, backgroundColor: ["#13b96a", "#168bfa", "#ff9f1c"], borderColor: "#fff", borderWidth: 3, hoverOffset: 5 }] },
+                options: doughnutOptions
+            });
+        }
+        addLegend("ratingLegend", reportData.ratingLabels, reportData.ratingValues, ["#13b96a", "#168bfa", "#ff9f1c"]);
+
+        if (reportData.cancellationLabels.length) {
+            new Chart(document.getElementById("cancellationChart"), {
+                type: "bar",
+                data: { labels: reportData.cancellationLabels, datasets: [{ data: reportData.cancellationValues, backgroundColor: ["#7627e8", "#168bfa", "#13b96a", "#ff9f1c", "#ef4e9a"], borderRadius: 6, maxBarThickness: 26 }] },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: item => Number(item.raw).toLocaleString("en-IN") + " rides" } } },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: "rgba(119,40,233,.09)" }, ticks: { color: "#4b4262", callback: value => compactNumber(value) } },
+                        y: { grid: { display: false }, ticks: { color: "#30234e" } }
+                    }
+                }
+            });
+        }
+
+        if (reportData.paymentLabels.length) {
+            new Chart(document.getElementById("paymentChart"), {
+                type: "doughnut",
+                data: { labels: reportData.paymentLabels, datasets: [{ data: reportData.paymentValues, backgroundColor: colors, borderColor: "#fff", borderWidth: 3, hoverOffset: 5 }] },
+                options: { ...doughnutOptions, plugins: { legend: { position: "right", labels: { usePointStyle: true, pointStyle: "circle", boxWidth: 8, padding: 11, color: "#30234e" } } } }
+            });
+        }
+
+        document.querySelectorAll(".reports-filter select").forEach(select => {
+            select.addEventListener("change", () => select.form.requestSubmit());
+        });
+        document.querySelector(".reports-export-button").addEventListener("click", event => {
+            event.preventDefault();
+            window.print();
+        });
+    </script>
+</body>
+</html>

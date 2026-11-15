@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#11142f">
+    <title>Admin Login | Uber Analytics</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_login.css') }}">
+</head>
+<body class="admin-login-page">
+    <main class="login-layout">
+        <section class="login-welcome" aria-labelledby="welcomeTitle">
+            <a class="login-brand" href="/admin-login" aria-label="Uber Analytics Admin">
+                <span class="login-brand-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span>UBER <strong>ANALYTICS</strong></span>
+            </a>
+
+            <div class="welcome-copy">
+                <span class="welcome-eyebrow"><i class="fa-solid fa-shield-halved"></i> ADMINISTRATOR PORTAL</span>
+                <h1 id="welcomeTitle">Insights start<br>with a <span>secure sign in.</span></h1>
+                <p>Welcome to your analytics workspace. Sign in to explore ride performance, city trends, and business insights.</p>
+            </div>
+
+            <div class="analytics-art" aria-hidden="true">
+                <div class="art-glow"></div>
+                <div class="art-window">
+                    <div class="art-window-bar">
+                        <span class="art-window-dots"><i></i><i></i><i></i></span>
+                        <span>ANALYTICS OVERVIEW</span>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                    <div class="art-window-body">
+                        <div class="art-mini-nav">
+                            <span class="art-mini-logo"><i class="fa-solid fa-chart-pie"></i></span>
+                            <i class="fa-solid fa-house"></i>
+                            <i class="fa-solid fa-chart-column"></i>
+                            <i class="fa-solid fa-location-dot"></i>
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
+                        <div class="art-dashboard">
+                            <div class="art-title-row">
+                                <span><i></i><i></i></span>
+                                <span class="art-date"><i class="fa-regular fa-calendar"></i> Last 30 days</span>
+                            </div>
+                            <div class="art-stat-row">
+                                <div><small>Total rides</small><strong>24.8k</strong><i>+12.6%</i></div>
+                                <div><small>Completion</small><strong>88.3%</strong><i>+4.2%</i></div>
+                                <div><small>Top city</small><strong>Bengaluru</strong><i>Active</i></div>
+                            </div>
+                            <div class="art-chart-card">
+                                <div class="art-chart-heading"><span>Ride activity</span><i class="fa-solid fa-arrow-trend-up"></i></div>
+                                <svg viewBox="0 0 540 125" role="presentation">
+                                    <defs>
+                                        <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0" stop-color="#aa8cff" stop-opacity=".42"/>
+                                            <stop offset="1" stop-color="#aa8cff" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0 104 C35 98 43 73 79 82 S123 100 157 70 S204 79 238 55 S286 69 319 45 S366 53 397 29 S446 49 476 22 S514 38 540 8 V125 H0Z" fill="url(#chartFill)"/>
+                                    <path d="M0 104 C35 98 43 73 79 82 S123 100 157 70 S204 79 238 55 S286 69 319 45 S366 53 397 29 S446 49 476 22 S514 38 540 8" fill="none" stroke="#b19aff" stroke-width="4" stroke-linecap="round"/>
+                                    <circle cx="397" cy="29" r="5" fill="#fff" stroke="#a98aff" stroke-width="3"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="art-database"><i class="fa-solid fa-database"></i><span>LIVE DATA</span></div>
+                <div class="art-insight"><i class="fa-solid fa-bolt"></i><span>Real-time insights</span></div>
+            </div>
+
+            <div class="welcome-footnote"><i class="fa-solid fa-lock"></i> Your workspace is protected with secure admin access</div>
+        </section>
+
+        <section class="login-side" aria-label="Admin sign in">
+            <div class="login-card">
+                <div class="card-mark"><i class="fa-solid fa-user-shield"></i></div>
+                <span class="card-eyebrow">WELCOME BACK</span>
+                <h2>Admin Login</h2>
+                <p class="card-description">Enter your administrator credentials to continue.</p>
+
+                {% if error %}
+                <div class="login-message" role="alert">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <span>{{ error }}</span>
+                </div>
+                {% elif not login_configured %}
+                <div class="login-message login-setup-message" role="status">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    <span>Admin credentials are not configured. Set <code>ADMIN_USERNAME</code> and <code>ADMIN_PASSWORD</code> before starting Flask.</span>
+                </div>
+                {% endif %}
+
+                <form class="login-form" method="post" action="{{ url_for('admin_login') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <i class="fa-regular fa-user" aria-hidden="true"></i>
+                        <input id="username" name="username" type="text" autocomplete="username" placeholder="Enter your username" required autofocus>
+                    </div>
+
+                    <div class="password-label-row">
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="input-wrap">
+                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false">
+                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <button class="login-submit" type="submit" {% if not login_configured %}disabled{% endif %}>
+                        <span>Sign in to dashboard</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    </button>
+                </form>
+
+                <div class="secure-access">
+                    <span class="secure-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                    <div><strong>Secure access</strong><small>Authorized administrators only</small></div>
+                    <i class="fa-solid fa-check secure-check" aria-hidden="true"></i>
+                </div>
+                <p class="login-footer"><i class="fa-solid fa-lock"></i> Protected session · Uber Analytics</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (() => {
+            const toggle = document.querySelector(".password-toggle");
+            const password = document.getElementById("password");
+            toggle.addEventListener("click", () => {
+                const reveal = password.type === "password";
+                password.type = reveal ? "text" : "password";
+                toggle.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+                toggle.setAttribute("aria-pressed", String(reveal));
+                toggle.innerHTML = `<i class="fa-regular ${reveal ? "fa-eye-slash" : "fa-eye"}" aria-hidden="true"></i>`;
+            });
+        })();
+    </script>
+</body>
+</html>

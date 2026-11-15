@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ride Analytics | Uber</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ride_analysis.css') }}">
+</head>
+<body class="ride-analysis-page">
+    <main class="ride-dashboard">
+        <aside class="ride-filter-panel">
+            <div class="filter-brand">
+                <span class="filter-brand-icon"><i class="fa-solid fa-car-side"></i></span>
+                <div>
+                    <strong>Ride Analytics</strong>
+                    <span>Filters</span>
+                </div>
+            </div>
+
+            <form class="ride-filters" method="get" action="{{ url_for('ride_analysis') }}">
+                {% if request.args.get("embedded") == "1" %}
+                    <input type="hidden" name="embedded" value="1">
+                {% endif %}
+                <label class="filter-field">
+                    <span><i class="fa-regular fa-calendar"></i> Year</span>
+                    <select name="year">
+                        <option value="all" {% if selected_year == "all" %}selected{% endif %}>All years</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if selected_year == year|string %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="filter-field">
+                    <span><i class="fa-regular fa-calendar-days"></i> Month</span>
+                    <select name="month">
+                        <option value="all" {% if selected_month == "all" %}selected{% endif %}>All months</option>
+                        {% for month in months %}
+                            <option value="{{ month }}" {% if selected_month == month|string %}selected{% endif %}>
+                                {{ month_names[month - 1] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="filter-field">
+                    <span><i class="fa-solid fa-car"></i> Ride type</span>
+                    <select name="ride_type">
+                        <option value="all" {% if selected_ride_type == "all" %}selected{% endif %}>All ride types</option>
+                        {% for ride_type in ride_types %}
+                            <option value="{{ ride_type }}" {% if selected_ride_type == ride_type %}selected{% endif %}>{{ ride_type }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="filter-field">
+                    <span><i class="fa-solid fa-circle-check"></i> Ride status</span>
+                    <select name="status">
+                        <option value="all" {% if selected_status == "all" %}selected{% endif %}>All statuses</option>
+                        {% for status in ride_statuses %}
+                            <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status.replace("_", " ").title() }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button class="filter-submit" type="submit"><i class="fa-solid fa-filter"></i> Apply filters</button>
+                <a class="filter-reset" href="{{ url_for('ride_analysis', embedded=1) if request.args.get('embedded') == '1' else url_for('ride_analysis') }}">Reset filters</a>
+            </form>
+
+            <div class="filter-art" aria-hidden="true">
+                <span class="art-skyline"></span>
+                <span class="art-pin"><i class="fa-solid fa-location-dot"></i></span>
+                <span class="art-car"><i class="fa-solid fa-car-side"></i></span>
+            </div>
+        </aside>
+
+        <section class="ride-content">
+            <header class="ride-page-header">
+                <div>
+                    <p class="ride-eyebrow">OPERATIONS OVERVIEW</p>
+                    <h1>Ride Analytics</h1>
+                    <p>Track rides, analyze trends and improve service.</p>
+                </div>
+                <span class="ride-date-badge"><i class="fa-regular fa-calendar"></i> All available dates</span>
+            </header>
+
+            <section class="ride-kpi-grid" aria-label="Ride analytics summary">
+                <article class="ride-kpi kpi-lilac">
+                    <span class="kpi-icon"><i class="fa-solid fa-car-side"></i></span>
+                    <div><span>Total rides</span><strong>{{ "{:,}".format(total_rides) }}</strong><small>Across {{ city_count }} cities</small></div>
+                </article>
+                <article class="ride-kpi kpi-mint">
+                    <span class="kpi-icon"><i class="fa-solid fa-sack-dollar"></i></span>
+                    <div><span>Gross revenue</span><strong>₹{{ "{:,.0f}".format(total_revenue) }}</strong><small>Avg fare ₹{{ "{:,.0f}".format(average_fare) }}</small></div>
+                </article>
+                <article class="ride-kpi kpi-peach">
+                    <span class="kpi-icon"><i class="fa-solid fa-circle-check"></i></span>
+                    <div><span>Completed rides</span><strong>{{ "{:,}".format(completed_rides) }}</strong><small>{{ "{:,}".format(cancelled_rides) }} cancelled</small></div>
+                </article>
+                <article class="ride-kpi kpi-rose">
+                    <span class="kpi-icon"><i class="fa-solid fa-star"></i></span>
+                    <div><span>Average rating</span><strong>{{ average_rating if average_rating is not none else "N/A" }} <small>/ 5</small></strong><small>Customer rating</small></div>
+                </article>
+            </section>
+
+            <section class="ride-chart-grid" aria-label="Ride analytics charts">
+                <article class="ride-chart-card city-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-location-dot"></i> Revenue by city</h2><p>Top cities by gross fare</p></div>
+                        <span class="chart-caption">Top 6</span>
+                    </div>
+                    <div class="ride-chart-wrap"><canvas id="cityRevenueChart" aria-label="Revenue by city"></canvas></div>
+                </article>
+
+                <article class="ride-chart-card type-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-car"></i> Gross fare by ride type</h2><p>Revenue across ride categories</p></div>
+                        <span class="chart-caption">INR</span>
+                    </div>
+                    <div class="ride-chart-wrap"><canvas id="rideTypeChart" aria-label="Gross fare by ride type"></canvas></div>
+                </article>
+
+                <article class="ride-chart-card completion-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-pie"></i> Completion rate</h2><p>Completed trips in selection</p></div>
+                    </div>
+                    <div class="completion-gauge" style="--completion: {{ completion_rate }}%">
+                        <div><strong>{{ completion_rate }}%</strong><span>Completed</span></div>
+                    </div>
+                    <div class="gauge-legend"><span><i></i> Completed</span><b>{{ "{:,}".format(completed_rides) }}</b></div>
+                </article>
+
+                <article class="ride-chart-card monthly-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-chart-line"></i> Ride & revenue trend</h2><p>Monthly rides and gross fare</p></div>
+                        <span class="chart-caption">Monthly</span>
+                    </div>
+                    <div class="ride-chart-wrap ride-chart-tall"><canvas id="monthlyChart" aria-label="Monthly ride and revenue trend"></canvas></div>
+                </article>
+
+                <article class="ride-chart-card status-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-circle-check"></i> Ride status</h2><p>Trip outcome breakdown</p></div>
+                    </div>
+                    <div class="ride-chart-wrap"><canvas id="statusChart" aria-label="Ride status breakdown"></canvas></div>
+                </article>
+
+                <article class="ride-chart-card drivers-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-users"></i> Top drivers</h2><p>Trips by driver ID</p></div>
+                    </div>
+                    <div class="ride-chart-wrap"><canvas id="driverChart" aria-label="Top drivers by ride count"></canvas></div>
+                </article>
+
+                <article class="ride-chart-card payment-chart-card">
+                    <div class="chart-card-heading">
+                        <div><h2><i class="fa-solid fa-credit-card"></i> Payment methods</h2><p>Rides by payment type</p></div>
+                    </div>
+                    <div class="ride-chart-wrap"><canvas id="paymentChart" aria-label="Rides by payment method"></canvas></div>
+                </article>
+            </section>
+            <footer class="ride-footer">Uber Analytics <span>·</span> Ride smarter. Analyze better.</footer>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const rideChartData = {
+            cityLabels: {{ city_labels | tojson }},
+            cityRevenue: {{ city_values | tojson }},
+            rideTypeLabels: {{ ride_type_labels | tojson }},
+            rideTypeRevenue: {{ ride_type_values | tojson }},
+            monthlyLabels: {{ monthly_labels | tojson }},
+            monthlyRides: {{ monthly_rides | tojson }},
+            monthlyRevenue: {{ monthly_revenue | tojson }},
+            statusLabels: {{ status_labels | tojson }},
+            statusValues: {{ status_values | tojson }},
+            driverLabels: {{ driver_labels | tojson }},
+            driverValues: {{ driver_values | tojson }},
+            paymentLabels: {{ payment_labels | tojson }},
+            paymentValues: {{ payment_values | tojson }}
+        };
+        const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
+        const compactMoney = value => "₹" + new Intl.NumberFormat("en-IN", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value || 0));
+        const chartColors = ["#8457f6", "#22bf86", "#ffa63d", "#27a9e8", "#e8518a", "#40bbbf"];
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+        };
+
+        if (rideChartData.cityLabels.length) {
+            new Chart(document.getElementById("cityRevenueChart"), {
+                type: "bar",
+                data: { labels: rideChartData.cityLabels, datasets: [{ data: rideChartData.cityRevenue, backgroundColor: chartColors, borderRadius: 7, maxBarThickness: 26 }] },
+                options: {
+                    ...chartOptions,
+                    indexAxis: "y",
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: "#f0edf4" }, ticks: { callback: value => compactMoney(value), maxRotation: 0, minRotation: 0 } },
+                        y: { grid: { display: false } }
+                    },
+                    plugins: { ...chartOptions.plugins, tooltip: { callbacks: { label: item => money(item.raw) } } }
+                }
+            });
+        }
+
+        if (rideChartData.rideTypeLabels.length) {
+            new Chart(document.getElementById("rideTypeChart"), {
+                type: "line",
+                data: { labels: rideChartData.rideTypeLabels, datasets: [{ data: rideChartData.rideTypeRevenue, borderColor: "#8655f6", backgroundColor: "rgba(134, 85, 246, .12)", fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: "#8655f6" }] },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: "#f0edf4" }, ticks: { callback: value => compactMoney(value) } }
+                    },
+                    plugins: { ...chartOptions.plugins, tooltip: { callbacks: { label: item => money(item.raw) } } }
+                }
+            });
+        }
+
+        if (rideChartData.monthlyLabels.length) {
+            new Chart(document.getElementById("monthlyChart"), {
+                type: "line",
+                data: {
+                    labels: rideChartData.monthlyLabels,
+                    datasets: [
+                        { label: "Rides", data: rideChartData.monthlyRides, borderColor: "#16b783", backgroundColor: "rgba(22, 183, 131, .11)", fill: true, tension: .32, pointRadius: 2, yAxisID: "y" },
+                        { label: "Revenue", data: rideChartData.monthlyRevenue, borderColor: "#8457f6", backgroundColor: "transparent", tension: .32, pointRadius: 2, yAxisID: "y1" }
+                    ]
+                },
+                options: {
+                    ...chartOptions,
+                    interaction: { mode: "index", intersect: false },
+                    plugins: { legend: { display: true, position: "top", align: "end", labels: { usePointStyle: true, boxWidth: 7 } }, tooltip: { callbacks: { label: item => item.dataset.label === "Revenue" ? "Revenue: " + money(item.raw) : "Rides: " + Number(item.raw).toLocaleString("en-IN") } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 9, maxRotation: 0 } },
+                        y: { beginAtZero: true, grid: { color: "#f0edf4" }, ticks: { precision: 0 } },
+                        y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false }, ticks: { callback: value => money(value) } }
+                    }
+                }
+            });
+        }
+
+        if (rideChartData.statusLabels.length) {
+            new Chart(document.getElementById("statusChart"), {
+                type: "doughnut",
+                data: { labels: rideChartData.statusLabels, datasets: [{ data: rideChartData.statusValues, backgroundColor: ["#8457f6", "#22bf86", "#ffa63d"], borderWidth: 0, hoverOffset: 5 }] },
+                options: { ...chartOptions, cutout: "68%", plugins: { legend: { position: "bottom", labels: { usePointStyle: true, boxWidth: 8, padding: 14 } } } }
+            });
+        }
+
+        if (rideChartData.driverLabels.length) {
+            new Chart(document.getElementById("driverChart"), {
+                type: "bar",
+                data: { labels: rideChartData.driverLabels, datasets: [{ data: rideChartData.driverValues, backgroundColor: "#28bd84", borderRadius: 6, maxBarThickness: 32 }] },
+                options: { ...chartOptions, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: "#f0edf4" }, ticks: { precision: 0 } } } }
+            });
+        }
+
+        if (rideChartData.paymentLabels.length) {
+            new Chart(document.getElementById("paymentChart"), {
+                type: "bar",
+                data: { labels: rideChartData.paymentLabels, datasets: [{ data: rideChartData.paymentValues, backgroundColor: chartColors, borderRadius: 6, maxBarThickness: 36 }] },
+                options: { ...chartOptions, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: "#f0edf4" }, ticks: { precision: 0 } } } }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,999 @@
+.ride-status-page {
+    min-height: 100vh;
+    margin: 0;
+    color: #171641;
+    background: #f3efff;
+    font-family: Arial, sans-serif;
+}
+
+.ride-status-page *,
+.ride-status-page *::before,
+.ride-status-page *::after {
+    box-sizing: border-box;
+}
+
+.ride-status-shell {
+    display: grid;
+    grid-template-columns: 178px minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.ride-status-sidebar {
+    position: relative;
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 14px 12px 12px;
+    border-right: 1px solid #e8ddff;
+    background: linear-gradient(180deg, #fff 0%, #fbf8ff 60%, #eee4ff 100%);
+}
+
+.ride-status-brand {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-height: 122px;
+    align-content: center;
+    justify-items: center;
+    padding: 9px;
+    border: 1px solid #e4d7ff;
+    border-radius: 17px;
+    color: #15143e;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: 0 5px 15px rgba(90, 43, 175, .09);
+    text-align: center;
+    text-decoration: none;
+}
+
+.ride-status-brand strong {
+    font-size: 1.85rem;
+    font-weight: 850;
+    letter-spacing: -.06em;
+    line-height: 1;
+}
+
+.ride-status-brand span {
+    margin-top: 6px;
+    color: #281365;
+    font-size: .99rem;
+    font-weight: 850;
+    line-height: 1.2;
+}
+
+.ride-sidebar-art {
+    position: relative;
+    min-height: 79px;
+    margin: 5px -5px 7px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: radial-gradient(ellipse at 50% 80%, #ded0ff 0 22%, transparent 65%);
+}
+
+.ride-sidebar-skyline {
+    position: absolute;
+    right: 0;
+    bottom: 8px;
+    left: 0;
+    height: 45px;
+    opacity: .63;
+    background: linear-gradient(0deg, #c8b3fa 0 8px, transparent 8px);
+    clip-path: polygon(0 70%, 8% 70%, 8% 36%, 18% 36%, 18% 76%, 29% 76%, 29% 23%, 41% 23%, 41% 66%, 54% 66%, 54% 7%, 67% 7%, 67% 64%, 79% 64%, 79% 35%, 91% 35%, 91% 66%, 100% 66%, 100% 100%, 0 100%);
+}
+
+.ride-sidebar-art .fa-car-side {
+    position: absolute;
+    right: 18px;
+    bottom: 15px;
+    color: #7126dc;
+    font-size: 2.65rem;
+    filter: drop-shadow(0 5px 4px rgba(49, 16, 113, .2));
+}
+
+.ride-status-filters {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 12px;
+    padding: 11px 9px 13px;
+    border: 1px solid #e7dcff;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, .78);
+}
+
+.ride-status-filter {
+    display: grid;
+    gap: 5px;
+}
+
+.ride-status-filter > span {
+    color: #251653;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.ride-status-filter > span i {
+    width: 18px;
+    margin-right: 3px;
+    color: #7627e8;
+    text-align: center;
+}
+
+.ride-status-filter select {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 9px;
+    border: 1px solid #ddceff;
+    border-radius: 10px;
+    outline: none;
+    color: #22174d;
+    background: #fff;
+    font: inherit;
+    font-size: .72rem;
+    font-weight: 650;
+}
+
+.ride-status-filter select:focus {
+    border-color: #8440e9;
+    box-shadow: 0 0 0 3px rgba(132, 64, 233, .12);
+}
+
+.ride-filter-apply {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 2px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    background: linear-gradient(100deg, #7727e8, #6115d3);
+    box-shadow: 0 5px 12px rgba(100, 25, 217, .2);
+    font: inherit;
+    font-size: .74rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.ride-filter-apply:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(100, 25, 217, .26);
+}
+
+.ride-filter-reset {
+    justify-self: center;
+    color: #6123cc;
+    font-size: .7rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ride-filter-reset:hover {
+    text-decoration: underline;
+}
+
+.ride-sidebar-footnote {
+    margin: auto 2px 0;
+    padding-top: 13px;
+    color: #8c82a3;
+    font-size: .59rem;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.ride-status-content {
+    min-width: 0;
+    padding: 12px clamp(12px, 1.45vw, 22px) 8px;
+}
+
+.ride-status-header {
+    display: flex;
+    min-height: 54px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.ride-status-eyebrow {
+    margin: 0 0 2px;
+    color: #7627e8;
+    font-size: .57rem;
+    font-weight: 850;
+    letter-spacing: .14em;
+}
+
+.ride-status-header h1 {
+    margin: 0;
+    color: #13123e;
+    font-size: clamp(1.3rem, 2vw, 1.85rem);
+    font-weight: 850;
+    letter-spacing: -.045em;
+    line-height: 1.05;
+}
+
+.ride-status-header p:last-child {
+    margin: 3px 0 0;
+    color: #79738d;
+    font-size: .69rem;
+}
+
+.ride-status-date {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    border: 1px solid #dfd2ff;
+    border-radius: 99px;
+    color: #39236f;
+    background: #fff;
+    box-shadow: 0 3px 9px rgba(90, 43, 175, .08);
+    font-size: .65rem;
+    font-weight: 750;
+}
+
+.ride-status-date i {
+    color: #7627e8;
+}
+
+.ride-status-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    margin-bottom: 9px;
+}
+
+.ride-status-kpi {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 65px;
+    align-items: center;
+    gap: 9px;
+    overflow: hidden;
+    padding: 7px 10px;
+    border: 1px solid var(--kpi-border);
+    border-radius: 13px;
+    background: var(--kpi-background);
+    box-shadow: 0 4px 11px rgba(65, 38, 135, .08);
+}
+
+.kpi-blue { --kpi-color: #168bfa; --kpi-border: #c9dfff; --kpi-background: linear-gradient(115deg, #f7fbff, #fff); }
+.kpi-green { --kpi-color: #13b96a; --kpi-border: #caeedc; --kpi-background: linear-gradient(115deg, #f3fff8, #fff); }
+.kpi-orange { --kpi-color: #ff8619; --kpi-border: #ffe0ca; --kpi-background: linear-gradient(115deg, #fff9f4, #fff); }
+.kpi-purple { --kpi-color: #8b37ed; --kpi-border: #e2d2ff; --kpi-background: linear-gradient(115deg, #faf6ff, #fff); }
+
+.ride-kpi-icon {
+    display: grid;
+    width: 39px;
+    height: 39px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--kpi-color);
+    box-shadow: 0 5px 10px rgba(58, 34, 111, .14);
+    font-size: 1rem;
+}
+
+.ride-status-kpi > div {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+}
+
+.ride-status-kpi small {
+    display: block;
+    color: #27224a;
+    font-size: .61rem;
+    font-weight: 750;
+}
+
+.ride-status-kpi strong {
+    display: block;
+    margin: 1px 0;
+    color: #14133e;
+    font-size: clamp(1rem, 1.55vw, 1.26rem);
+    font-weight: 850;
+    letter-spacing: -.035em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.ride-status-kpi > div > span {
+    display: block;
+    overflow: hidden;
+    color: #8c859b;
+    font-size: .52rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ride-kpi-spark {
+    position: absolute;
+    right: 5px;
+    bottom: 6px;
+    width: 42px;
+    height: 34px;
+    opacity: .37;
+    background: repeating-linear-gradient(90deg, var(--kpi-color) 0 6px, transparent 6px 9px);
+    clip-path: polygon(0 75%, 15% 65%, 15% 55%, 30% 55%, 30% 45%, 45% 45%, 45% 32%, 60% 32%, 60% 20%, 75% 20%, 75% 9%, 90% 9%, 90% 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.ride-status-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 9px;
+}
+
+.ride-status-card {
+    min-width: 0;
+    overflow: hidden;
+    padding: 10px 11px;
+    border: 1px solid rgba(126, 100, 193, .1);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 4px 12px rgba(65, 38, 135, .075);
+}
+
+.ride-outcomes-card { grid-column: span 4; min-height: 158px; }
+.ride-map-card { grid-column: span 5; min-height: 158px; }
+.ride-top-cities-card { grid-column: span 3; min-height: 158px; }
+.ride-trend-card { grid-column: span 6; min-height: 166px; }
+.ride-performance-card { grid-column: span 3; min-height: 166px; }
+.ride-payment-card { grid-column: span 3; min-height: 166px; }
+.ride-cancellation-card { grid-column: span 4; min-height: 162px; }
+.ride-type-card { grid-column: span 4; min-height: 162px; }
+.ride-recent-card { grid-column: span 4; min-height: 162px; }
+
+.ride-card-heading {
+    display: flex;
+    min-height: 27px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 7px;
+    margin-bottom: 5px;
+}
+
+.ride-card-heading h2 {
+    margin: 0;
+    color: #17143f;
+    font-size: .76rem;
+    font-weight: 850;
+    letter-spacing: -.02em;
+}
+
+.ride-card-heading h2 i {
+    margin-right: 4px;
+    color: #7627e8;
+}
+
+.ride-card-heading p {
+    margin: 3px 0 0;
+    color: #817a94;
+    font-size: .55rem;
+}
+
+.ride-outcomes-layout {
+    display: grid;
+    grid-template-columns: minmax(100px, 1fr) minmax(95px, 1fr);
+    align-items: center;
+    gap: 6px;
+}
+
+.ride-chart {
+    position: relative;
+    width: 100%;
+}
+
+.ride-status-donut {
+    height: 112px;
+}
+
+.ride-donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.ride-donut-center strong {
+    color: #17143f;
+    font-size: .98rem;
+    font-weight: 850;
+    letter-spacing: -.04em;
+    line-height: 1.05;
+}
+
+.ride-donut-center span {
+    color: #7e7891;
+    font-size: .5rem;
+}
+
+.ride-custom-legend {
+    display: grid;
+    gap: 8px;
+}
+
+.ride-legend-row {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    color: #28234a;
+    font-size: .59rem;
+}
+
+.ride-legend-row i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.ride-legend-row > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ride-legend-row strong {
+    font-size: .6rem;
+}
+
+.ride-map-caption {
+    flex: 0 0 auto;
+    padding: 4px 7px;
+    border-radius: 99px;
+    color: #65518f;
+    background: #f3edff;
+    font-size: .51rem;
+    font-weight: 700;
+}
+
+.ride-map-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20px;
+    align-items: center;
+    gap: 3px;
+    min-height: 180px;
+}
+
+.ride-map-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+    height: 180px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 8px;
+    background:
+        radial-gradient(ellipse at 52% 47%, rgba(229, 222, 255, .45), transparent 68%),
+        linear-gradient(135deg, #fbfcff, #f7f8ff);
+}
+
+.ride-india-map {
+    position: absolute;
+    inset: 3px 4px;
+    width: calc(100% - 8px);
+    height: calc(100% - 6px);
+}
+
+.ride-india-land {
+    fill: url("#indiaFill");
+    stroke: #8ea8ff;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 3px 3px rgba(49, 79, 156, .11));
+}
+
+.ride-map-heat {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    transform: translate(-50%, -50%);
+    place-items: center;
+    border-radius: 50%;
+    pointer-events: auto;
+}
+
+.ride-map-heat::before {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(106, 28, 236, .72) 0, rgba(119, 56, 239, .36) 34%, rgba(147, 112, 255, .13) 61%, transparent 76%);
+    content: "";
+    filter: blur(1px);
+    opacity: var(--heat-opacity);
+}
+
+.heat-high::before { width: 51px; height: 51px; }
+.heat-medium::before { width: 41px; height: 41px; }
+.heat-low::before { width: 32px; height: 32px; }
+
+.ride-map-heat > i {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    background: #681ad8;
+    box-shadow: 0 0 6px rgba(81, 24, 202, .75);
+}
+
+.ride-map-scale {
+    display: grid;
+    height: 124px;
+    justify-items: center;
+    color: #5c5574;
+    font-size: .48rem;
+    font-weight: 700;
+}
+
+.ride-map-scale i {
+    width: 8px;
+    height: 91px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #6e20d9, #a27bfa 55%, #e8e4ff);
+}
+
+.ride-map-empty {
+    position: absolute;
+    z-index: 3;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    transform: translate(-50%, -50%);
+    color: #827a95;
+    font-size: .62rem;
+    text-align: center;
+}
+
+.ride-top-city-list {
+    display: grid;
+    gap: 9px;
+    padding-top: 3px;
+}
+
+.ride-top-city {
+    display: grid;
+    grid-template-columns: minmax(50px, .85fr) minmax(40px, 1fr) 36px;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+}
+
+.ride-city-name {
+    overflow: hidden;
+    color: #28234a;
+    font-size: .58rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ride-city-bar {
+    display: block;
+    height: 13px;
+    overflow: hidden;
+    border-radius: 5px;
+    background: #f1ebff;
+}
+
+.ride-city-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7627e8, #a16af1);
+}
+
+.ride-top-city > strong {
+    color: #26204b;
+    font-size: .56rem;
+    text-align: right;
+}
+
+.ride-trend-card .ride-card-heading {
+    align-items: center;
+}
+
+.ride-chart-legend {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    color: #4a4561;
+    font-size: .51rem;
+}
+
+.ride-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.ride-chart-legend i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.trend-total { background: #168bfa; }
+.trend-completed { background: #13b96a; }
+.trend-cancelled { background: #ff9f1c; }
+
+.ride-trend-chart {
+    height: 119px;
+}
+
+.ride-gauge-chart {
+    height: 125px;
+    margin-top: 1px;
+}
+
+.ride-gauge-center {
+    position: absolute;
+    right: 0;
+    bottom: 8px;
+    left: 0;
+    display: grid;
+    text-align: center;
+    pointer-events: none;
+}
+
+.ride-gauge-center strong {
+    color: #17143f;
+    font-size: 1.08rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.ride-gauge-center span {
+    margin-top: 3px;
+    color: #77718d;
+    font-size: .54rem;
+}
+
+.ride-payment-layout {
+    display: grid;
+    grid-template-columns: minmax(100px, 1fr) minmax(90px, 1fr);
+    align-items: center;
+    gap: 5px;
+}
+
+.ride-payment-donut {
+    height: 122px;
+}
+
+.ride-payment-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: grid;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.ride-payment-center strong {
+    color: #17143f;
+    font-size: .96rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.ride-payment-center span {
+    max-width: 70px;
+    margin-top: 3px;
+    overflow: hidden;
+    color: #77718d;
+    font-size: .49rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ride-cancellation-chart {
+    height: 116px;
+}
+
+.ride-type-chart {
+    height: 118px;
+}
+
+.ride-recent-scroll {
+    overflow: auto;
+}
+
+.ride-recent-table {
+    width: 100%;
+    min-width: 430px;
+    border-collapse: collapse;
+    color: #37324f;
+    font-size: .52rem;
+}
+
+.ride-recent-table th,
+.ride-recent-table td {
+    padding: 5px 5px;
+    border-bottom: 1px solid #eee9f7;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.ride-recent-table th {
+    color: #29224b;
+    background: #f0e9ff;
+    font-size: .5rem;
+    font-weight: 850;
+}
+
+.ride-recent-table tbody tr:hover {
+    background: #fcfaff;
+}
+
+.ride-recent-table td:nth-child(2) {
+    color: #5731a1;
+    font-weight: 700;
+}
+
+.ride-status-pill {
+    display: inline-flex;
+    padding: 3px 6px;
+    border-radius: 99px;
+    font-size: .48rem;
+    font-weight: 750;
+}
+
+.pill-completed {
+    color: #087c43;
+    background: #dff9e9;
+}
+
+.pill-cancelled {
+    color: #b24931;
+    background: #fff0e7;
+}
+
+.ride-status-empty {
+    display: grid;
+    min-height: 95px;
+    place-items: center;
+    margin: 0;
+    color: #817a94;
+    font-size: .61rem;
+    text-align: center;
+}
+
+.ride-status-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 2px 0;
+    color: #8a839b;
+    font-size: .52rem;
+}
+
+@media (max-width: 1100px) {
+    .ride-status-shell {
+        grid-template-columns: 165px minmax(0, 1fr);
+    }
+
+    .ride-status-content {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .ride-outcomes-card { grid-column: span 6; }
+    .ride-map-card { grid-column: span 6; }
+    .ride-top-cities-card { grid-column: span 4; }
+    .ride-trend-card { grid-column: span 8; }
+    .ride-performance-card { grid-column: span 4; }
+    .ride-payment-card { grid-column: span 4; }
+    .ride-cancellation-card { grid-column: span 4; }
+    .ride-type-card { grid-column: span 4; }
+    .ride-recent-card { grid-column: span 8; }
+
+    .ride-status-card {
+        padding-right: 9px;
+        padding-left: 9px;
+    }
+}
+
+@media (max-width: 820px) {
+    .ride-status-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .ride-status-sidebar {
+        min-height: 0;
+        padding: 11px 14px;
+        border-right: 0;
+        border-bottom: 1px solid #e8ddff;
+    }
+
+    .ride-status-brand {
+        min-height: 0;
+        justify-items: start;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        text-align: left;
+    }
+
+    .ride-status-brand strong {
+        font-size: 1.4rem;
+    }
+
+    .ride-status-brand span br {
+        display: none;
+    }
+
+    .ride-status-brand span {
+        margin-top: 2px;
+        font-size: .75rem;
+    }
+
+    .ride-sidebar-art,
+    .ride-sidebar-footnote {
+        display: none;
+    }
+
+    .ride-status-filters {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .ride-status-filter > span {
+        font-size: .65rem;
+    }
+
+    .ride-status-filter select {
+        min-height: 33px;
+        font-size: .65rem;
+    }
+
+    .ride-filter-apply {
+        min-height: 33px;
+        align-self: end;
+        font-size: .64rem;
+    }
+
+    .ride-filter-reset {
+        grid-column: 1 / -1;
+    }
+
+    .ride-status-content {
+        padding: 12px;
+    }
+
+    .ride-status-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ride-outcomes-card { grid-column: span 1; }
+    .ride-map-card { grid-column: span 1; }
+    .ride-top-cities-card { grid-column: span 2; }
+    .ride-trend-card { grid-column: span 2; }
+    .ride-performance-card { grid-column: span 1; }
+    .ride-payment-card { grid-column: span 1; }
+    .ride-cancellation-card { grid-column: span 1; }
+    .ride-type-card { grid-column: span 1; }
+    .ride-recent-card { grid-column: span 2; }
+}
+
+@media (max-width: 560px) {
+    .ride-status-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ride-status-filter > span {
+        font-size: .7rem;
+    }
+
+    .ride-status-filter select {
+        font-size: .7rem;
+    }
+
+    .ride-status-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ride-status-date {
+        align-self: flex-start;
+    }
+
+    .ride-status-kpis {
+        gap: 7px;
+    }
+
+    .ride-status-kpi {
+        min-height: 62px;
+        gap: 7px;
+        padding: 6px;
+    }
+
+    .ride-kpi-icon {
+        width: 32px;
+        height: 32px;
+        font-size: .82rem;
+    }
+
+    .ride-status-kpi small {
+        font-size: .55rem;
+    }
+
+    .ride-status-kpi > div > span {
+        font-size: .47rem;
+    }
+
+    .ride-status-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .ride-outcomes-card,
+    .ride-map-card,
+    .ride-top-cities-card,
+    .ride-trend-card,
+    .ride-performance-card,
+    .ride-payment-card,
+    .ride-cancellation-card,
+    .ride-type-card,
+    .ride-recent-card {
+        grid-column: auto;
+    }
+
+    .ride-status-card {
+        min-height: 150px;
+    }
+
+    .ride-map-wrap {
+        height: 180px;
+    }
+
+    .ride-map-layout {
+        min-height: 180px;
+    }
+
+    .ride-map-scale {
+        height: 124px;
+    }
+
+    .ride-map-scale i {
+        height: 91px;
+    }
+
+    .ride-trend-chart {
+        height: 145px;
+    }
+
+    .ride-gauge-chart {
+        height: 140px;
+    }
+
+    .ride-payment-donut,
+    .ride-cancellation-chart,
+    .ride-type-chart {
+        height: 142px;
+    }
+
+    .ride-recent-table {
+        min-width: 510px;
+    }
+
+    .ride-status-footer {
+        flex-direction: column;
+        line-height: 1.4;
+    }
+}

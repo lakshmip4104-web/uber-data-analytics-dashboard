@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Revenue Analysis | Uber Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
+</head>
+<body class="dashboard-page">
+    <main class="dashboard-container dashboard-main workspace-standalone">
+        <header class="workspace-page-heading">
+            <div>
+                <p class="workspace-kicker">FINANCIAL PERFORMANCE</p>
+                <h1>Revenue Analysis</h1>
+                <p>Review fare revenue trends by time, city, and ride type.</p>
+            </div>
+        </header>
+
+        <section class="workspace-stats" aria-label="Revenue summary">
+            <article class="workspace-stat">
+                <span class="workspace-stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                <div><small>Total revenue</small><strong>₹{{ "{:,.0f}".format(total_revenue or 0) }}</strong></div>
+            </article>
+            <article class="workspace-stat">
+                <span class="workspace-stat-icon"><i class="fa-solid fa-wallet"></i></span>
+                <div><small>Average fare</small><strong>₹{{ "{:,.2f}".format(average_fare or 0) }}</strong></div>
+            </article>
+            <article class="workspace-stat">
+                <span class="workspace-stat-icon"><i class="fa-solid fa-ticket"></i></span>
+                <div><small>Bookings analyzed</small><strong>{{ "{:,}".format(total_bookings or 0) }}</strong></div>
+            </article>
+        </section>
+
+        <section class="workspace-revenue-grid" aria-label="Revenue charts">
+            <article class="panel chart-panel workspace-wide">
+                <div class="panel-heading">
+                    <div><h2>Monthly revenue</h2><p>Fare totals over time</p></div>
+                    <span class="panel-icon"><i class="fa-solid fa-chart-line"></i></span>
+                </div>
+                <div class="chart-wrap"><canvas id="monthlyRevenueChart" aria-label="Monthly revenue trend"></canvas></div>
+            </article>
+            <article class="panel chart-panel">
+                <div class="panel-heading">
+                    <div><h2>Revenue by city</h2><p>Top cities by total fare</p></div>
+                    <span class="panel-icon"><i class="fa-solid fa-city"></i></span>
+                </div>
+                <div class="chart-wrap"><canvas id="cityRevenueChart" aria-label="Revenue by city"></canvas></div>
+            </article>
+            <article class="panel chart-panel">
+                <div class="panel-heading">
+                    <div><h2>Revenue by ride type</h2><p>Fare contribution by service</p></div>
+                    <span class="panel-icon"><i class="fa-solid fa-car-side"></i></span>
+                </div>
+                <div class="chart-wrap"><canvas id="rideTypeRevenueChart" aria-label="Revenue by ride type"></canvas></div>
+            </article>
+        </section>
+    </main>
+
+    <div id="revenueChartData" hidden
+        data-month-labels="{{ month_labels | tojson | forceescape }}"
+        data-monthly-revenue="{{ monthly_revenue | tojson | forceescape }}"
+        data-city-labels="{{ city_labels | tojson | forceescape }}"
+        data-city-revenue="{{ city_revenue | tojson | forceescape }}"
+        data-ride-type-labels="{{ ride_type_labels | tojson | forceescape }}"
+        data-ride-type-revenue="{{ ride_type_revenue | tojson | forceescape }}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartDataElement = document.getElementById("revenueChartData");
+        const readArray = key => JSON.parse(chartDataElement.dataset[key] || "[]");
+        const monthLabels = readArray("monthLabels");
+        const monthlyRevenue = readArray("monthlyRevenue");
+        const cityLabels = readArray("cityLabels");
+        const cityRevenue = readArray("cityRevenue");
+        const rideTypeLabels = readArray("rideTypeLabels");
+        const rideTypeRevenue = readArray("rideTypeRevenue");
+        const palette = ["#5c70e8", "#16a36a", "#f0a54b", "#39a8b5", "#9d83df", "#e36c6c", "#4382bd", "#d06a9c"];
+
+        if (monthLabels.length) {
+            new Chart(document.getElementById("monthlyRevenueChart"), {
+                type: "line",
+                data: { labels: monthLabels, datasets: [{ label: "Revenue", data: monthlyRevenue, borderColor: "#16a36a", backgroundColor: "rgba(22,163,106,.12)", fill: true, tension: .32, pointRadius: 2 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: item => " ₹" + Number(item.raw).toLocaleString("en-IN") } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }, y: { beginAtZero: true, grid: { color: "#edf0f2" }, ticks: { callback: value => "₹" + Number(value).toLocaleString("en-IN") } } } }
+            });
+        }
+
+        if (cityLabels.length) {
+            new Chart(document.getElementById("cityRevenueChart"), {
+                type: "bar",
+                data: { labels: cityLabels, datasets: [{ data: cityRevenue, backgroundColor: palette, borderRadius: 5, maxBarThickness: 26 }] },
+                options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: "#edf0f2" }, ticks: { callback: value => "₹" + Number(value).toLocaleString("en-IN") } }, y: { grid: { display: false } } } }
+            });
+        }
+
+        if (rideTypeLabels.length) {
+            new Chart(document.getElementById("rideTypeRevenueChart"), {
+                type: "doughnut",
+                data: { labels: rideTypeLabels, datasets: [{ data: rideTypeRevenue, backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }] },
+                options: { maintainAspectRatio: false, cutout: "64%", plugins: { legend: { position: "bottom" } } }
+            });
+        }
+    </script>
+</body>
+</html>

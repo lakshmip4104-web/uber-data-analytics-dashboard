@@ -1,0 +1,53 @@
+<header class="workspace-topbar">
+    <a class="workspace-header-brand" href="/workspace?view=home" data-view="home">
+        <strong>Uber</strong><span>| Analytics Dashboard</span>
+    </a>
+    <nav class="workspace-menu" aria-label="Main navigation">
+        <a href="/workspace?view=home" data-view="home" class="{% if initial_view == 'home' %}active{% endif %}">
+            <i class="fa-solid fa-house"></i><span>Home</span>
+        </a>
+        <a href="/dashboard" data-view="dashboard" class="{% if initial_view == 'dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
+        </a>
+        <a href="/ride-analysis" data-view="ride-analysis" class="{% if initial_view == 'ride-analysis' %}active{% endif %}">
+            <i class="fa-solid fa-car-side"></i><span>Ride Analysis</span>
+        </a>
+        <a href="/city-analysis" data-view="city" class="{% if initial_view == 'city' %}active{% endif %}">
+            <i class="fa-solid fa-city"></i><span>City Analysis</span>
+        </a>
+        <a href="/payment-analysis" data-view="payment" class="{% if initial_view == 'payment' %}active{% endif %}">
+            <i class="fa-solid fa-credit-card"></i><span>Payment</span>
+        </a>
+        <a href="/ride-status" data-view="ride-status" class="{% if initial_view == 'ride-status' %}active{% endif %}">
+            <i class="fa-solid fa-chart-column"></i><span>Ride Status</span>
+        </a>
+        <a href="/live-team" data-view="live-team" class="{% if initial_view == 'live-team' %}active{% endif %}">
+            <i class="fa-solid fa-location-dot"></i><span>Live Team</span>
+        </a>
+        <a href="/reports" data-view="reports" class="{% if initial_view == 'reports' %}active{% endif %}">
+            <i class="fa-solid fa-file-lines"></i><span>Reports</span>
+        </a>
+    </nav>
+    <form class="workspace-logout" action="{{ url_for('admin_logout') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sign out</span></button>
+    </form>
+    <div class="workspace-main-menu">
+        <button class="workspace-main-menu-button" id="workspaceMainMenuButton" type="button" aria-expanded="false" aria-controls="workspaceMainMenuList">
+            <i class="fa-solid fa-bars"></i><span>Main Menu</span>
+        </button>
+        <nav class="workspace-main-menu-list" id="workspaceMainMenuList" aria-label="Main menu" hidden>
+            <a href="/workspace?view=home" data-view="home"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/dashboard" data-view="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="/ride-analysis" data-view="ride-analysis"><i class="fa-solid fa-car-side"></i> Ride Analysis</a>
+            <a href="/city-analysis" data-view="city"><i class="fa-solid fa-city"></i> City Analysis</a>
+            <a href="/bookings" data-view="bookings"><i class="fa-solid fa-ticket"></i> Bookings</a>
+            <a href="/revenue" data-view="revenue"><i class="fa-solid fa-indian-rupee-sign"></i> Revenue</a>
+            <a href="/drivers" data-view="drivers"><i class="fa-solid fa-users"></i> Drivers</a>
+            <a href="/payment-analysis" data-view="payment"><i class="fa-solid fa-credit-card"></i> Payment</a>
+            <a href="/ride-status" data-view="ride-status"><i class="fa-solid fa-chart-column"></i> Ride Status</a>
+            <a href="/live-team" data-view="live-team"><i class="fa-solid fa-location-dot"></i> Live Team</a>
+            <a href="/reports" data-view="reports"><i class="fa-solid fa-file-lines"></i> Reports</a>
+        </nav>
+    </div>
+</header>

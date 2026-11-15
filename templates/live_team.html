@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Live Team Tracking | Uber Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page live-team-page">
+    <nav class="navbar navbar-expand-lg dashboard-navbar live-team-navbar">
+        <div class="container-fluid dashboard-container">
+            <a class="navbar-brand dashboard-brand" href="/">
+                <span class="brand-mark live-team-brand-mark"><i class="fa-solid fa-car-side"></i></span>
+                <span>Uber<span class="brand-subtitle"> / Team tracking</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#teamMenu" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="teamMenu">
+                <div class="navbar-nav ms-auto align-items-lg-center">
+                    <a class="nav-link" href="/dashboard">Overview</a>
+                    <a class="nav-link" href="/ride-analysis">Ride analysis</a>
+                    <a class="nav-link" href="/ride-status">Ride status</a>
+                    <a class="nav-link active" href="/live-team">Live team</a>
+                    <span class="admin-chip"><i class="fa-solid fa-circle-user"></i> Admin</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="dashboard-container dashboard-main live-team-main">
+        <header class="team-hero">
+            <div class="team-hero-copy">
+                <p class="team-eyebrow"><span class="team-pulse"></span> OPERATIONS / TEAM VIEW</p>
+                <h1>Live team tracking</h1>
+                <p>Review the latest driver records and follow the standard ride journey.</p>
+            </div>
+            <div class="snapshot-tag">
+                <i class="fa-solid fa-database"></i>
+                <span><strong>Dataset snapshot</strong><small>Latest record: {{ latest_date }}</small></span>
+            </div>
+        </header>
+
+        <div class="team-notice" role="note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>This dataset contains ride records, not GPS coordinates. Driver cards show each driver's latest recorded ride; they do not represent live locations.</span>
+        </div>
+
+        <section class="team-summary" aria-label="Team summary">
+            <article class="team-summary-card summary-cyan">
+                <span class="summary-icon"><i class="fa-solid fa-users"></i></span>
+                <div><small>Drivers in dataset</small><strong>{{ "{:,}".format(total_drivers or 0) }}</strong></div>
+            </article>
+            <article class="team-summary-card summary-purple">
+                <span class="summary-icon"><i class="fa-solid fa-city"></i></span>
+                <div><small>Cities covered</small><strong>{{ "{:,}".format(cities_covered or 0) }}</strong></div>
+            </article>
+            <article class="team-summary-card summary-orange">
+                <span class="summary-icon"><i class="fa-solid fa-list-check"></i></span>
+                <div><small>Driver cards shown</small><strong>{{ team_members|length }}</strong></div>
+            </article>
+        </section>
+
+        <section class="team-section" aria-labelledby="journey-title">
+            <div class="team-section-heading">
+                <div>
+                    <p class="team-section-kicker">STEP-BY-STEP FLOW</p>
+                    <h2 id="journey-title">Ride journey</h2>
+                </div>
+                <span class="journey-caption">Standard process guide</span>
+            </div>
+
+            <ol class="journey-track" aria-label="Eight steps in the standard ride journey">
+                <li class="journey-step step-cyan">
+                    <span class="step-number">01</span><span class="step-icon"><i class="fa-solid fa-mobile-screen-button"></i></span>
+                    <h3>Ride requested</h3><p>Customer submits a trip request.</p>
+                </li>
+                <li class="journey-step step-blue">
+                    <span class="step-number">02</span><span class="step-icon"><i class="fa-solid fa-magnifying-glass-location"></i></span>
+                    <h3>Finding a driver</h3><p>Nearby drivers are considered.</p>
+                </li>
+                <li class="journey-step step-violet">
+                    <span class="step-number">03</span><span class="step-icon"><i class="fa-solid fa-user-check"></i></span>
+                    <h3>Driver matched</h3><p>A driver accepts the ride.</p>
+                </li>
+                <li class="journey-step step-pink">
+                    <span class="step-number">04</span><span class="step-icon"><i class="fa-solid fa-route"></i></span>
+                    <h3>En route</h3><p>Driver travels to pickup.</p>
+                </li>
+                <li class="journey-step step-orange">
+                    <span class="step-number">05</span><span class="step-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <h3>At pickup</h3><p>Driver reaches the pickup point.</p>
+                </li>
+                <li class="journey-step step-yellow">
+                    <span class="step-number">06</span><span class="step-icon"><i class="fa-solid fa-car"></i></span>
+                    <h3>Ride started</h3><p>Trip begins with the customer.</p>
+                </li>
+                <li class="journey-step step-green">
+                    <span class="step-number">07</span><span class="step-icon"><i class="fa-solid fa-flag-checkered"></i></span>
+                    <h3>Drop-off</h3><p>Driver reaches the destination.</p>
+                </li>
+                <li class="journey-step step-teal">
+                    <span class="step-number">08</span><span class="step-icon"><i class="fa-solid fa-circle-check"></i></span>
+                    <h3>Ride completed</h3><p>Trip is closed in the system.</p>
+                </li>
+            </ol>
+        </section>
+
+        <section class="team-section driver-section" aria-labelledby="drivers-title">
+            <div class="team-section-heading">
+                <div>
+                    <p class="team-section-kicker">RECENT DRIVER RECORDS</p>
+                    <h2 id="drivers-title">Team snapshot</h2>
+                </div>
+                <span class="journey-caption">Up to 8 latest driver records</span>
+            </div>
+
+            <div class="driver-track">
+                {% for member in team_members %}
+                <article class="driver-card driver-tone-{{ loop.index }}">
+                    <div class="driver-card-top">
+                        <span class="driver-step">STEP {{ "%02d"|format(loop.index) }}</span>
+                        <span class="driver-status status-{{ member.Status_Category }}">{{ member.Ride_Status or "Unknown" }}</span>
+                    </div>
+                    <div class="driver-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <h3>{{ member.Driver_ID or "Unknown driver" }}</h3>
+                    <p class="driver-city"><i class="fa-solid fa-location-dot"></i> {{ member.City or "Unknown city" }}</p>
+                    <div class="driver-divider"></div>
+                    <div class="driver-detail"><span>Latest ride</span><strong>{{ member.Ride_ID or "N/A" }}</strong></div>
+                    <div class="driver-detail"><span>Ride type</span><strong>{{ member.Ride_Type or "N/A" }}</strong></div>
+                    <div class="driver-detail"><span>Record date</span><strong>{{ member.Date or "Unknown" }}</strong></div>
+                </article>
+                {% else %}
+                <div class="team-empty">No driver records are available in the dataset.</div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <footer class="dashboard-footer">Uber Analytics <span>·</span> Ride smarter. Analyze better.</footer>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

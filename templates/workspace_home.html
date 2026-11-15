@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Uber Analytics | Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home_dashboard.css') }}">
+</head>
+<body class="dashboard-page workspace-home-page">
+    <main class="workspace-home">
+        <section class="project-home-hero">
+            <div class="project-home-copy">
+                <p class="home-overline"><i class="fa-solid fa-chart-line"></i> YOUR NETWORK AT A GLANCE</p>
+                <h1><span class="home-title-uber">Uber</span><br>Data Analytics <span class="home-title-accent">Dashboard</span></h1>
+                <p class="project-home-lead">Explore. Analyze. Drive Better Decisions.</p>
+                <p class="project-home-description">Track rides, revenue, and city performance with a clear view of your latest data.</p>
+                <div class="project-home-actions">
+                    <a class="project-home-primary" href="/dashboard"><i class="fa-solid fa-chart-column"></i> Explore Dashboard <i class="fa-solid fa-arrow-right"></i></a>
+                    <a class="project-home-secondary" href="#analytics"><i class="fa-solid fa-circle-play"></i> View analytics</a>
+                </div>
+            </div>
+            <div class="home-visual" aria-label="Illustration of a ride against a city skyline">
+                <div class="visual-sun"></div>
+                <div class="visual-skyline skyline-back"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="visual-skyline skyline-front"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="visual-chart"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="visual-car"><i class="fa-solid fa-car-side"></i><span>Uber</span></div>
+                <div class="visual-phone">
+                    <div class="phone-top"><span>Uber</span><i class="fa-solid fa-signal"></i></div>
+                    <div class="phone-map"><span class="map-route"></span><i class="fa-solid fa-location-dot"></i><b></b></div>
+                </div>
+                <span class="visual-spark spark-one">✦</span><span class="visual-spark spark-two">✦</span>
+            </div>
+        </section>
+
+        <section class="home-shortcuts" aria-label="Analytics sections">
+            <a class="home-shortcut shortcut-city" href="/city-analysis"><span class="shortcut-icon"><i class="fa-solid fa-location-dot"></i></span><strong>City Analysis</strong><small>Explore city trends</small><i class="fa-solid fa-arrow-right shortcut-arrow"></i></a>
+            <a class="home-shortcut shortcut-bookings" href="/bookings"><span class="shortcut-icon"><i class="fa-solid fa-car"></i></span><strong>Bookings</strong><small>Review ride records</small><i class="fa-solid fa-arrow-right shortcut-arrow"></i></a>
+            <a class="home-shortcut shortcut-revenue" href="/revenue"><span class="shortcut-icon"><i class="fa-solid fa-sack-dollar"></i></span><strong>Revenue</strong><small>Track fare trends</small><i class="fa-solid fa-arrow-right shortcut-arrow"></i></a>
+            <a class="home-shortcut shortcut-drivers" href="/drivers"><span class="shortcut-icon"><i class="fa-solid fa-users"></i></span><strong>Drivers</strong><small>View driver activity</small><i class="fa-solid fa-arrow-right shortcut-arrow"></i></a>
+            <a class="home-shortcut shortcut-reports" href="/reports"><span class="shortcut-icon"><i class="fa-solid fa-file-lines"></i></span><strong>Reports</strong><small>Review your network</small><i class="fa-solid fa-arrow-right shortcut-arrow"></i></a>
+        </section>
+
+        <section class="home-kpis" aria-label="Dataset summary">
+            <article class="home-kpi kpi-bookings"><span class="kpi-round"><i class="fa-solid fa-calendar-check"></i></span><div><small>Total Bookings</small><strong>{{ "{:,}".format(total_bookings or 0) }}</strong><em>Ride requests</em></div><i class="fa-solid fa-chart-line kpi-spark"></i></article>
+            <article class="home-kpi kpi-revenue"><span class="kpi-round"><i class="fa-solid fa-indian-rupee-sign"></i></span><div><small>Total Revenue</small><strong>₹{{ "{:,.0f}".format(total_revenue or 0) }}</strong><em>Recorded fares</em></div><i class="fa-solid fa-chart-line kpi-spark"></i></article>
+            <article class="home-kpi kpi-drivers"><span class="kpi-round"><i class="fa-solid fa-users"></i></span><div><small>Total Drivers</small><strong>{{ "{:,}".format(active_drivers or 0) }}</strong><em>Unique driver IDs</em></div><i class="fa-solid fa-chart-line kpi-spark"></i></article>
+            <article class="home-kpi kpi-cities"><span class="kpi-round"><i class="fa-solid fa-city"></i></span><div><small>Total Cities</small><strong>{{ "{:,}".format(city_count or 0) }}</strong><em>Locations represented</em></div><i class="fa-solid fa-chart-line kpi-spark"></i></article>
+        </section>
+
+        <section class="home-analytics" id="analytics" aria-label="Analytics overview">
+            <header class="analytics-heading"><h2><i class="fa-solid fa-chart-column"></i> Analytics Overview</h2><span><i class="fa-regular fa-calendar"></i> Latest 6 months in dataset</span></header>
+            <div class="home-chart-grid">
+                <article class="home-chart-card"><h3><i class="fa-solid fa-indian-rupee-sign chart-purple"></i> Revenue by Month</h3><div class="home-chart-wrap"><canvas id="homeRevenueChart" aria-label="Revenue by month"></canvas></div></article>
+                <article class="home-chart-card"><h3><i class="fa-solid fa-car chart-blue"></i> Bookings by Vehicle Type</h3><div class="home-chart-wrap"><canvas id="homeVehicleChart" aria-label="Bookings by vehicle type"></canvas></div></article>
+                <article class="home-chart-card"><h3><i class="fa-solid fa-circle-check chart-green"></i> Ride Status</h3><div class="home-chart-wrap"><canvas id="homeStatusChart" aria-label="Ride status breakdown"></canvas></div></article>
+                <article class="home-chart-card"><h3><i class="fa-solid fa-location-dot chart-purple"></i> Top Cities</h3><div class="home-chart-wrap"><canvas id="homeCityChart" aria-label="Bookings by city"></canvas></div></article>
+                <article class="home-chart-card"><h3><i class="fa-solid fa-credit-card chart-violet"></i> Payment Methods</h3><div class="home-chart-wrap"><canvas id="homePaymentChart" aria-label="Payment method breakdown"></canvas></div></article>
+            </div>
+        </section>
+        <footer class="workspace-home-footer">UBER ANALYTICS <span>·</span> Includes {{ "{:,}".format(synthetic_rides) }} synthetic sample records</footer>
+    </main>
+
+    <div id="homeChartData" hidden
+        data-month-labels="{{ month_labels | tojson | forceescape }}"
+        data-monthly-revenue="{{ monthly_revenue | tojson | forceescape }}"
+        data-vehicle-labels="{{ ride_type_labels | tojson | forceescape }}"
+        data-vehicle-values="{{ ride_type_values | tojson | forceescape }}"
+        data-status-labels="{{ status_labels | tojson | forceescape }}"
+        data-status-values="{{ status_values | tojson | forceescape }}"
+        data-city-labels="{{ city_labels | tojson | forceescape }}"
+        data-city-values="{{ city_values | tojson | forceescape }}"
+        data-payment-labels="{{ payment_labels | tojson | forceescape }}"
+        data-payment-values="{{ payment_values | tojson | forceescape }}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartElement = document.getElementById("homeChartData");
+        const readHomeData = key => JSON.parse(chartElement.dataset[key] || "[]");
+        const homeColors = ["#6e35b4", "#f49531", "#239dde", "#32b986", "#d34d94", "#7d71cf"];
+        const homeChartData = {
+            months: readHomeData("monthLabels"),
+            revenue: readHomeData("monthlyRevenue"),
+            vehicles: readHomeData("vehicleLabels"),
+            vehicleValues: readHomeData("vehicleValues"),
+            statuses: readHomeData("statusLabels"),
+            statusValues: readHomeData("statusValues"),
+            cities: readHomeData("cityLabels"),
+            cityValues: readHomeData("cityValues"),
+            payments: readHomeData("paymentLabels"),
+            paymentValues: readHomeData("paymentValues")
+        };
+        Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+        Chart.defaults.color = "#514a59";
+        const baseOptions = { maintainAspectRatio: false, plugins: { legend: { display: false } } };
+        new Chart(document.getElementById("homeRevenueChart"), {
+            type: "line",
+            data: { labels: homeChartData.months, datasets: [{ data: homeChartData.revenue, borderColor: "#7138b7", backgroundColor: "rgba(113, 56, 183, .14)", fill: true, tension: .35, pointRadius: 2, pointBackgroundColor: "#7138b7" }] },
+            options: { ...baseOptions, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: "#eee8f0" }, ticks: { maxTicksLimit: 4, callback: value => value >= 1000 ? Math.round(value / 1000) + "k" : value } } } }
+        });
+        new Chart(document.getElementById("homeVehicleChart"), {
+            type: "doughnut",
+            data: { labels: homeChartData.vehicles, datasets: [{ data: homeChartData.vehicleValues, backgroundColor: homeColors, borderColor: "#fffaf5", borderWidth: 3 }] },
+            options: { ...baseOptions, cutout: "62%", plugins: { legend: { display: true, position: "right", labels: { boxWidth: 7, usePointStyle: true, padding: 9, font: { size: 9 } } } } }
+        });
+        new Chart(document.getElementById("homeStatusChart"), {
+            type: "doughnut",
+            data: { labels: homeChartData.statuses, datasets: [{ data: homeChartData.statusValues, backgroundColor: ["#2fb986", "#fa8c34", "#43a6e5"], borderColor: "#fffaf5", borderWidth: 3 }] },
+            options: { ...baseOptions, cutout: "62%", plugins: { legend: { display: true, position: "right", labels: { boxWidth: 7, usePointStyle: true, padding: 9, font: { size: 9 } } } } }
+        });
+        new Chart(document.getElementById("homeCityChart"), {
+            type: "bar",
+            data: { labels: homeChartData.cities, datasets: [{ data: homeChartData.cityValues, backgroundColor: "#763bbb", borderRadius: 4, maxBarThickness: 22 }] },
+            options: { ...baseOptions, scales: { x: { grid: { display: false }, ticks: { font: { size: 8 }, maxRotation: 0 } }, y: { beginAtZero: true, grid: { color: "#eee8f0" }, ticks: { maxTicksLimit: 4, precision: 0 } } } }
+        });
+        new Chart(document.getElementById("homePaymentChart"), {
+            type: "doughnut",
+            data: { labels: homeChartData.payments, datasets: [{ data: homeChartData.paymentValues, backgroundColor: homeColors, borderColor: "#fffaf5", borderWidth: 3 }] },
+            options: { ...baseOptions, cutout: "62%", plugins: { legend: { display: true, position: "right", labels: { boxWidth: 7, usePointStyle: true, padding: 9, font: { size: 9 } } } } }
+        });
+    </script>
+</body>
+</html>

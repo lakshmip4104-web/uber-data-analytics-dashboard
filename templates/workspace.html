@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Uber Analytics Workspace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home_dashboard.css') }}">
+</head>
+<body class="dashboard-page workspace-page" data-initial-view="{{ initial_view }}">
+    <div class="workspace-shell">
+        {% include "_workspace_navigation.html" %}
+        <div class="workspace-main">
+            <main class="workspace-content" aria-label="Dashboard content">
+                <iframe
+                    id="workspaceFrame"
+                    title="Dashboard content"
+                    data-initial-src="{{ page_endpoints[initial_view] }}"
+                    style="visibility: hidden"
+                    loading="eager"></iframe>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const pageEndpoints = {
+                home: "/workspace-home",
+                dashboard: "/dashboard?embedded=1",
+                "ride-analysis": "/ride-analysis?embedded=1",
+                city: "/city-analysis?embedded=1",
+                bookings: "/bookings?embedded=1",
+                revenue: "/revenue?embedded=1",
+                drivers: "/drivers?embedded=1",
+                reports: "/reports?embedded=1",
+                payment: "/payment-analysis?embedded=1",
+                "ride-status": "/ride-status?embedded=1",
+                "live-team": "/live-team?embedded=1"
+            };
+            const pageTitles = {
+                home: "Home",
+                dashboard: "Dashboard",
+                "ride-analysis": "Ride Analysis",
+                city: "City Analysis",
+                bookings: "Booking Details",
+                revenue: "Revenue Analysis",
+                drivers: "Driver Details",
+                reports: "Reports",
+                payment: "Payment Analysis",
+                "ride-status": "Ride Status",
+                "live-team": "Live Team"
+            };
+            const pathViews = {
+                "/": "home",
+                "/dashboard": "dashboard",
+                "/workspace-home": "home",
+                "/ride-analysis": "ride-analysis",
+                "/city-analysis": "city",
+                "/bookings": "bookings",
+                "/revenue": "revenue",
+                "/drivers": "drivers",
+                "/reports": "reports",
+                "/payment-analysis": "payment",
+                "/ride-status": "ride-status",
+                "/live-team": "live-team"
+            };
+            const frame = document.getElementById("workspaceFrame");
+            const mainMenuButton = document.getElementById("workspaceMainMenuButton");
+            const mainMenu = document.getElementById("workspaceMainMenuList");
+            let currentView = document.body.dataset.initialView;
+
+            const updateNavigation = view => {
+                document.querySelectorAll(".workspace-menu a[data-view]").forEach(link => {
+                    const selected = link.dataset.view === view;
+                    link.classList.toggle("active", selected);
+                    if (selected) {
+                        link.setAttribute("aria-current", "page");
+                    } else {
+                        link.removeAttribute("aria-current");
+                    }
+                });
+                mainMenu.querySelectorAll("a[data-view]").forEach(link => {
+                    if (link.dataset.view === view) {
+                        link.setAttribute("aria-current", "page");
+                    } else {
+                        link.removeAttribute("aria-current");
+                    }
+                });
+                frame.title = (pageTitles[view] || pageTitles.dashboard) + " content";
+            };
+
+            const closeMainMenu = () => {
+                mainMenu.hidden = true;
+                mainMenuButton.setAttribute("aria-expanded", "false");
+            };
+
+            const showView = (view, updateHistory) => {
+                if (!pageEndpoints[view]) {
+                    return;
+                }
+                currentView = view;
+                updateNavigation(view);
+                closeMainMenu();
+                if (updateHistory) {
+                    history.pushState({ view }, "", "/workspace?view=" + encodeURIComponent(view));
+                }
+                frame.style.visibility = "hidden";
+                frame.src = pageEndpoints[view];
+            };
+
+            mainMenuButton.addEventListener("click", event => {
+                event.stopPropagation();
+                mainMenu.hidden = !mainMenu.hidden;
+                mainMenuButton.setAttribute("aria-expanded", String(!mainMenu.hidden));
+            });
+
+            mainMenu.addEventListener("click", event => event.stopPropagation());
+            document.addEventListener("click", closeMainMenu);
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape") {
+                    closeMainMenu();
+                    mainMenuButton.focus();
+                }
+            });
+
+            document.querySelectorAll("[data-view]").forEach(link => {
+                link.addEventListener("click", event => {
+                    event.preventDefault();
+                    showView(link.dataset.view, true);
+                });
+            });
+
+            frame.addEventListener("load", () => {
+                const childDocument = frame.contentDocument;
+                if (!childDocument || !childDocument.head || !childDocument.body) {
+                    frame.style.visibility = "visible";
+                    return;
+                }
+
+                const embedStyle = childDocument.createElement("style");
+                embedStyle.textContent = `
+                    html, body { min-height: 100%; margin: 0 !important; overflow-x: hidden; }
+                    nav, .navbar, .city-sidebar, .city-topbar { display: none !important; }
+                    .city-main-column { margin-left: 0 !important; }
+                    .city-app-shell { min-height: 0 !important; }
+                    main.city-dashboard-main { width: 100% !important; max-width: none !important; padding: 22px 24px !important; }
+                    :root {
+                        color-scheme: dark;
+                        --frame-bg: #090517;
+                        --frame-panel: #100d24;
+                        --frame-raised: #172657;
+                        --frame-border: #33234b;
+                        --frame-text: #f5f0ff;
+                        --frame-muted: #b8aec9;
+                        --frame-pink: #dd25a6;
+                        --frame-cyan: #90d1f6;
+                        --theme-cream: var(--frame-bg);
+                        --theme-paper: var(--frame-panel);
+                        --theme-paper-deep: #120e29;
+                        --theme-border: var(--frame-border);
+                        --theme-wine: var(--frame-pink);
+                        --theme-wine-dark: var(--frame-text);
+                        --theme-wine-soft: #ed9bef;
+                        --theme-ink: var(--frame-text);
+                        --theme-muted: var(--frame-muted);
+                        --theme-shadow: rgba(0, 0, 0, .32);
+                        --city-bg: var(--frame-bg);
+                        --city-panel: var(--frame-panel);
+                        --city-border: var(--frame-border);
+                        --city-text: var(--frame-text);
+                        --city-muted: var(--frame-muted);
+                        --city-blue: var(--frame-cyan);
+                        --city-violet: var(--frame-pink);
+                    }
+                    html, body {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-bg) !important;
+                    }
+                    body :is(h1, h2, h3, h4, h5, strong, label, .eyebrow, [class*="heading"]) {
+                        color: var(--frame-text) !important;
+                    }
+                    body :is(p, small, .muted, [class*="subtitle"], [class*="description"], [class*="caption"]) {
+                        color: var(--frame-muted) !important;
+                    }
+                    body :is(.filter-field > span, .city-filter-field > span, .payment-filter-field > span, .ride-status-filter > span, .filter-brand strong, .filter-brand div > span, .city-filter-brand strong, .city-filter-brand small, .payment-filter-brand strong, .payment-filter-brand small, .ride-status-brand span, .ride-sidebar-footnote) {
+                        color: var(--frame-muted) !important;
+                    }
+                    body :is(main, section, article, aside, footer, [class*="content"], [class*="shell"], [class*="dashboard"]) {
+                        color: var(--frame-text);
+                        border-color: var(--frame-border);
+                    }
+                    body :is([class*="card"], [class*="panel"], [class*="metric"], [class*="kpi"]):not([class*="icon"]):not([class*="heading"]):not([class*="tag"]) {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                        box-shadow: 0 10px 24px rgba(0, 0, 0, .24) !important;
+                    }
+                    body :is([class*="icon"], [class*="mark"]) {
+                        color: var(--frame-cyan) !important;
+                        background-color: rgba(144, 209, 246, .12) !important;
+                        border-color: rgba(144, 209, 246, .24) !important;
+                    }
+                    body :is([class*="sidebar"], [class*="filter-panel"]) {
+                        color: var(--frame-text) !important;
+                        background: #0d0a1d !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body :is(.ride-status-brand, .ride-status-filters) {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                        box-shadow: 0 10px 24px rgba(0, 0, 0, .24) !important;
+                    }
+                    body :is(.ride-content, .city-analysis-content, .payment-analysis-content, .ride-status-content, .reports-main, .dashboard-main, .ride-dashboard, .city-analysis-shell, .payment-analysis-shell, .ride-status-shell) {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-bg) !important;
+                    }
+                    body :is(.ride-page-header, .city-page-header, .payment-page-header, .ride-status-header, .team-hero, .payment-hero, .reports-heading) {
+                        color: var(--frame-text) !important;
+                        background: linear-gradient(120deg, #100d24, #172657) !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body :is(.team-notice, .journey-caption, .journey-step, .driver-section) {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                        box-shadow: 0 10px 24px rgba(0, 0, 0, .24) !important;
+                    }
+                    body .team-notice {
+                        color: var(--frame-muted) !important;
+                    }
+                    body .team-notice i {
+                        color: var(--frame-cyan) !important;
+                    }
+                    body .journey-step .step-number,
+                    body :is(.driver-step, .driver-detail, .team-empty) {
+                        color: var(--frame-muted) !important;
+                    }
+                    body .journey-step::after {
+                        background: var(--frame-border) !important;
+                    }
+                    body :is(.journey-track, .driver-track) {
+                        scrollbar-color: #5b477a #100d24 !important;
+                    }
+                    body :is(.reports-filter, .reports-top-chip, .reports-city-rank) {
+                        color: var(--frame-cyan) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body .reports-filter {
+                        box-shadow: 0 5px 12px rgba(0, 0, 0, .24) !important;
+                    }
+                    body .reports-filter > i {
+                        color: var(--frame-cyan) !important;
+                    }
+                    body .reports-city-track {
+                        background: var(--frame-raised) !important;
+                    }
+                    body .reports-table tbody tr:hover {
+                        background: var(--frame-raised) !important;
+                    }
+                    body.home-page .hero,
+                    body.home-page .features-section,
+                    body.home-page .summary-section,
+                    body.home-page footer,
+                    body.workspace-home-page .workspace-home,
+                    body.workspace-home-page .home-analytics {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-bg) !important;
+                    }
+                    body.home-page .hero-image,
+                    body.home-page .feature-card,
+                    body.home-page .feature-card:hover,
+                    body.workspace-home-page :is(.project-home-hero, .home-shortcut, .home-kpi, .home-chart-card) {
+                        color: var(--frame-text) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body :is(.btn-outline-custom, .project-home-secondary, .ride-date-badge, .city-filter-reset, .payment-filter-reset, .bike-scene-label) {
+                        color: var(--frame-cyan) !important;
+                        background: var(--frame-panel) !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body.home-page .hero-text > p,
+                    body.home-page .section-heading > p,
+                    body.home-page .feature-card p,
+                    body.home-page .summary-item p,
+                    body.home-page footer p {
+                        color: var(--frame-muted) !important;
+                    }
+                    body :is(a, .filter-reset, .filter-field > span i, .ride-eyebrow, .city-eyebrow, .payment-eyebrow, .ride-status-eyebrow) {
+                        color: var(--frame-cyan) !important;
+                    }
+                    body :is(button, .filter-submit, .city-filter-submit, .payment-filter-submit, .ride-filter-apply) {
+                        color: #fff !important;
+                        background: linear-gradient(100deg, #9b0c62, #dd25a6) !important;
+                        border-color: #dd25a6 !important;
+                    }
+                    body :is(input, select, textarea) {
+                        color: var(--frame-text) !important;
+                        background: #0d0a1d !important;
+                        border-color: var(--frame-border) !important;
+                    }
+                    body table { color: var(--frame-text) !important; }
+                    body :is(th, thead) { color: var(--frame-text) !important; background: #172657 !important; }
+                    body :is(td, th) { color: var(--frame-text) !important; border-color: var(--frame-border) !important; }
+                    body td { background: transparent !important; }
+                    body :is(.status-completed, .team-status-completed) {
+                        color: var(--frame-cyan) !important;
+                        background: rgba(144, 209, 246, .12) !important;
+                    }
+                    body :is(.status-cancelled, .team-status-cancelled) {
+                        color: #ed9bef !important;
+                        background: rgba(221, 37, 166, .14) !important;
+                    }
+                    body canvas { color: var(--frame-muted) !important; }
+                    ::selection { color: #fff !important; background: #9b0c62 !important; }
+                    * { scrollbar-color: #641055 #090517; }
+                `;
+                childDocument.head.appendChild(embedStyle);
+                frame.style.visibility = "visible";
+
+                const chartLibrary = childDocument.defaultView.Chart;
+                if (chartLibrary) {
+                    chartLibrary.defaults.color = "#b8aec9";
+                    chartLibrary.defaults.borderColor = "rgba(144, 209, 246, .16)";
+                    childDocument.querySelectorAll("canvas").forEach(canvas => {
+                        const chart = chartLibrary.getChart(canvas);
+                        if (chart) {
+                            chart.update("none");
+                        }
+                    });
+                }
+
+                if (childDocument.documentElement.dataset.workspaceBridgeInstalled === "true") {
+                    return;
+                }
+                childDocument.documentElement.dataset.workspaceBridgeInstalled = "true";
+                childDocument.addEventListener("click", event => {
+                    const link = event.target.closest("a[href]");
+                    if (!link || link.target || link.hasAttribute("download")) {
+                        return;
+                    }
+                    const targetUrl = new URL(link.href, window.location.origin);
+                    if (targetUrl.origin !== window.location.origin) {
+                        return;
+                    }
+                    if (targetUrl.pathname === childDocument.location.pathname && targetUrl.hash) {
+                        return;
+                    }
+                    const view = pathViews[targetUrl.pathname];
+                    if (view) {
+                        event.preventDefault();
+                        showView(view, true);
+                    }
+                });
+            });
+
+            window.addEventListener("popstate", () => {
+                const view = new URLSearchParams(window.location.search).get("view") || "home";
+                showView(view, false);
+            });
+
+            updateNavigation(currentView);
+            frame.src = frame.dataset.initialSrc;
+        })();
+    </script>
+</body>
+</html>
